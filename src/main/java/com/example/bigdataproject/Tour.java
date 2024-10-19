@@ -1,4 +1,4 @@
-package com.example.bigdataproject;
+package com.example.BigDataProject;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ public class Tour {
     // Constructor
     public Tour(int tourID, int capacity, Timestamp timestamp, TourGuide tourGuide) {
         this.tourID = tourID;
-        this.capacity = 15; // Standard Tour Capacity
+        this.capacity = 12; // Standard Tour Capacity
         this.timestamp = timestamp;
         this.bookings = new ArrayList<>();  // Initialize bookings list
         this.tourGuide = tourGuide;         // Assign the tour guide

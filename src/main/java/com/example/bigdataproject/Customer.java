@@ -1,4 +1,4 @@
-package com.example.bigdataproject;
+package com.example.BigDataProject;
 
 import java.util.ArrayList;
 
