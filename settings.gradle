@@ -1,1 +1,6 @@
 rootProject.name = 'BigDataProject'
+include 'Microservices:AuthenticationService'
+include 'Microservices:BookingMakingService'
+include 'Microservices:CalenderManagementService'
+include 'Microservices:TourManagementService'
+include 'Microservices:UserManagementService'
