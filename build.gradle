@@ -26,3 +26,12 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+task bootRunAll(type: GradleBuild) {
+    tasks = [
+            ':Microservices:AuthenticationService:bootRun',
+            ':Microservices:BookingMakingService:bootRun',
+            ':Microservices:CalenderManagementService:bootRun',
+            ':Microservices:TourManagementService:bootRun',
+            ':Microservices:UserManagementService:bootRun'
+    ]
+}
