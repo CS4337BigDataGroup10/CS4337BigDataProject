@@ -1,7 +1,14 @@
-rootProject.name = 'BigDataProject'
+rootProject.name = 'CS4337BigDataProject'
 
-include 'Microservices:AuthenticationService'
-include 'Microservices:BookingMakingService'
-include 'Microservices:CalenderManagementService'
-include 'Microservices:TourManagementService'
-include 'Microservices:UserManagementService'
+include 'AuthenticationService'
+include 'BookingMakingService'
+include 'CalendarManagementService'
+include 'TourManagementService'
+include 'UserManagementService'
+
+// Specify the correct paths for each microservice
+project(':AuthenticationService').projectDir = file('Microservices/AuthenticationService')
+project(':BookingMakingService').projectDir = file('Microservices/BookingMakingService')
+project(':CalendarManagementService').projectDir = file('Microservices/CalendarManagementService')
+project(':TourManagementService').projectDir = file('Microservices/TourManagementService')
+project(':UserManagementService').projectDir = file('Microservices/UserManagementService')
