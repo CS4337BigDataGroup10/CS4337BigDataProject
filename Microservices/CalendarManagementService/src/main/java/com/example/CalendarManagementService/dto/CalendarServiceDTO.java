@@ -2,58 +2,18 @@ package com.example.CalendarManagementService.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 
 public class CalendarServiceDTO {
-    private Long id;
     private LocalDate date;
-    private List<TimeSlotDTO> timeSlots;
+    private LocalTime time;
+    private Long tourId;
 
     public CalendarServiceDTO() {}
 
-    public CalendarServiceDTO(Long id, LocalDate date, List<TimeSlotDTO> timeSlots) {
-        this.id = id;
+    public CalendarServiceDTO(LocalDate date, LocalTime time, Long tourId) {
         this.date = date;
-        this.timeSlots = timeSlots;
-    }
-
-    // Inner DTO class for TimeSlot
-    public static class TimeSlotDTO {
-        private LocalTime timeSlot;
-        private Long tourId;
-
-        public TimeSlotDTO() {}
-
-        public TimeSlotDTO(LocalTime timeSlot, Long tourId) {
-            this.timeSlot = timeSlot;
-            this.tourId = tourId;
-        }
-
-        // Getters and setters
-        public LocalTime getTimeSlot() {
-            return timeSlot;
-        }
-
-        public void setTimeSlot(LocalTime timeSlot) {
-            this.timeSlot = timeSlot;
-        }
-
-        public Long getTourId() {
-            return tourId;
-        }
-
-        public void setTourId(Long tourId) {
-            this.tourId = tourId;
-        }
-    }
-
-    // Getters and Setters for CalendarServiceDTO
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+        this.time = time;
+        this.tourId = tourId;
     }
 
     public LocalDate getDate() {
@@ -64,11 +24,19 @@ public class CalendarServiceDTO {
         this.date = date;
     }
 
-    public List<TimeSlotDTO> getTimeSlots() {
-        return timeSlots;
+    public LocalTime getTime() {
+        return time;
     }
 
-    public void setTimeSlots(List<TimeSlotDTO> timeSlots) {
-        this.timeSlots = timeSlots;
+    public void setTime(LocalTime time) {
+        this.time = time;
+    }
+
+    public Long getTourId() {
+        return tourId;
+    }
+
+    public void setTourId(Long tourId) {
+        this.tourId = tourId;
     }
 }

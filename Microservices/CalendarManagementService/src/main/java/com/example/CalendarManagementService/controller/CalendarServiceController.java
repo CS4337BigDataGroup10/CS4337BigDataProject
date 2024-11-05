@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,9 +25,10 @@ public class CalendarServiceController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CalendarServiceDTO> getCalendarById(@PathVariable Long id) {
-        CalendarServiceEntity calendar = calendarService.getCalendarById(id);
+    @GetMapping("/{date}/{time}")
+    public ResponseEntity<CalendarServiceDTO> getCalendarById(
+            @PathVariable LocalDate date, @PathVariable LocalTime time) {
+        CalendarServiceEntity calendar = calendarService.getCalendarById(date, time);
         if (calendar != null) {
             return ResponseEntity.ok(convertToDTO(calendar));
         } else {
@@ -35,21 +38,23 @@ public class CalendarServiceController {
 
     @PostMapping
     public CalendarServiceDTO createCalendar(@RequestBody CalendarServiceDTO calendarDTO) {
-        CalendarServiceEntity calendar = calendarService.createCalendar(calendarDTO.getDate());
+        CalendarServiceEntity calendar = calendarService.createCalendar(
+                calendarDTO.getDate(), calendarDTO.getTime(), calendarDTO.getTourId());
         return convertToDTO(calendar);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCalendar(@PathVariable Long id) {
-        calendarService.deleteCalendar(id);
+    @DeleteMapping("/{date}/{time}")
+    public ResponseEntity<Void> deleteCalendar(
+            @PathVariable LocalDate date, @PathVariable LocalTime time) {
+        calendarService.deleteCalendar(date, time);
         return ResponseEntity.noContent().build();
     }
 
     private CalendarServiceDTO convertToDTO(CalendarServiceEntity calendar) {
-        List<CalendarServiceDTO.TimeSlotDTO> timeSlotDTOs = calendar.getTimeSlots().stream()
-                .map(timeSlot -> new CalendarServiceDTO.TimeSlotDTO(timeSlot.getTimeSlot(), timeSlot.getTourId()))
-                .collect(Collectors.toList());
-        return new CalendarServiceDTO(calendar.getId(), calendar.getDate(), timeSlotDTOs);
+        return new CalendarServiceDTO(
+                calendar.getDate(),
+                calendar.getTime(),
+                calendar.getTourId()
+        );
     }
 }
-

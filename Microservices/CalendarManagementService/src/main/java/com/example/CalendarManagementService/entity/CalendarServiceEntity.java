@@ -3,54 +3,37 @@ package com.example.CalendarManagementService.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "Calendar")
-public class CalendarServiceEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Table(name = "Calendar")  public class CalendarServiceEntity {
 
-    private LocalDate date;
+    @EmbeddedId
+    private CalendarId calendarId;
 
-    // Store pairs of time slots and associated tour IDs
-    @ElementCollection
-    @CollectionTable(name = "TimeSlots", joinColumns = @JoinColumn(name = "CalendarId"))
-    private List<TimeSlot> timeSlots = new ArrayList<>();
+    @Column(name = "tourId")
+    private Long tourId;
 
     public CalendarServiceEntity() {}
 
-    public CalendarServiceEntity(LocalDate date) {
-        this.date = date;
-        initializeTimeSlots();
+    public CalendarServiceEntity(LocalDate date, LocalTime time, Long tourId) {
+        this.calendarId = new CalendarId(date, time);
+        this.tourId = tourId;
     }
 
-    // Initializes hourly slots from 9 AM to 5 PM for each day, with no tourId assigned
-    private void initializeTimeSlots() {
-        for (int hour = 9; hour <= 17; hour++) {
-            timeSlots.add(new TimeSlot(LocalTime.of(hour, 0), null));
-        }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
+    // Getters and Setters
     public LocalDate getDate() {
-        return date;
+        return calendarId.getDate();
     }
 
-    public List<TimeSlot> getTimeSlots() {
-        return timeSlots;
+    public LocalTime getTime() {
+        return calendarId.getTime();
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public Long getTourId() {
+        return tourId;
     }
 
-    public void setTimeSlots(List<TimeSlot> timeSlots) {
-        this.timeSlots = timeSlots;
+    public void setTourId(Long tourId) {
+        this.tourId = tourId;
     }
 }
