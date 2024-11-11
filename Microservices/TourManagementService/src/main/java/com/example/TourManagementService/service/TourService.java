@@ -52,4 +52,16 @@ public class TourService {
         tour.setParticipantCount(newParticipantCount);
         tourRepository.save(tour);
     }
+    public void removeBooking(int tourId, int bookingId) {
+        @Query("DELETE t FROM Tour t WHERE t.bookingId = bookingId")
+        Tour tour = getTourById(tourId);
+        tour.updateParticipantCount(-1);
+    }
+
+    public void addBooking(int tourId, int bookingId) {
+        @Query("INSERT INTO Tour t WHERE t.bookingId = bookingId")
+        Tour tour = getTourById(tourId);
+        tour.updateParticipantCount(1);
+    }
+
 }
