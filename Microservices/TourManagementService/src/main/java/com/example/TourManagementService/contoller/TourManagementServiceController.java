@@ -60,4 +60,23 @@ public class TourManagementServiceController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PutMapping("/{tourId}/addBooking")
+    public ResponseEntity<String> addBooking(@PathVariable int tourId, @RequestParam int bookingId) {
+        try {
+            tourService.addBooking(tourId, bookingId);
+            return ResponseEntity.ok("Booking added successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @PutMapping("/{tourId}/removeBooking")
+    public ResponseEntity<String> removeBooking(@PathVariable int tourId, @RequestParam int bookingId) {
+        try {
+            tourService.removeBooking(tourId, bookingId);
+            return ResponseEntity.ok("Booking removed successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
