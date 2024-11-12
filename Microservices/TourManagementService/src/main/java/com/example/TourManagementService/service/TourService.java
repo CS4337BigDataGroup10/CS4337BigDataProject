@@ -1,6 +1,8 @@
 package com.example.TourManagementService.service;
 
 import com.example.TourManagementService.entity.Tour;
+import com.example.TourManagementService.entity.TourBookings;
+import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.repository.TourRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,9 +13,11 @@ import java.util.List;
 public class TourService {
 
     private final TourRepository tourRepository;
+    private final TourBookingsRepository tourBookingsRepository;
 
-    public TourService(TourRepository tourRepository) {
+    public TourService(TourRepository tourRepository, TourBookingsRepository tourBookingsRepository) {
         this.tourRepository = tourRepository;
+        this.tourBookingsRepository = tourBookingsRepository;
     }
 
     public List<Tour> getAvailableTours() {
@@ -55,10 +59,11 @@ public class TourService {
     //method to remove a booking from a tour
     public void removeBooking(int tourId, int bookingId) {
         Tour tour = getTourById(tourId);
+        tourBookingsRepository.deletedByTourIdandBookingId(tourId, bookingId);
     }
     //method to add a booking to a tour
     public void addBooking(int tourId, int bookingId) {
         Tour tour = getTourById(tourId);
+        tourBookingsRepository.updateTourBookingsByBookingIdAnd(tourId, bookingId);
     }
-
 }
