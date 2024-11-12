@@ -1,5 +1,6 @@
-package com.example.TourManagementService.entity;
+package com.example.BookingMakingService.entity;
 
+import com.example.TourManagementService.entity.User;
 import jakarta.persistence.*;
 
 @Entity

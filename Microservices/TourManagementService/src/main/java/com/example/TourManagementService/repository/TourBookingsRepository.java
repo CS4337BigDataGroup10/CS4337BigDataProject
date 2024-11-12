@@ -9,9 +9,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TourBookingsRepository extends JpaRepository<TourBookings, Integer> {
 
-    Integer deletedByTourIdandBookingId(int tourId, int bookingId);
+    void deletedByTourIdandBookingId(int tourId, int bookingId);
 
     @Modifying
-    @Query("UPDATE TourBookings tb SET tb.tour.tourId = ?1 WHERE tb.bookingId = ?2")
-    Integer updateTourBookingsByBookingIdAnd(int tourId, int bookingId);
+    @Query("UPDATE TourBookings tb SET tb.tourId = ?1 WHERE tb.bookingId = ?2")
+    void updateTourBookingsByBookingIdAnd(int tourId, int bookingId);
 }

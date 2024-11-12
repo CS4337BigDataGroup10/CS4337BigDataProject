@@ -4,9 +4,12 @@ import com.example.TourManagementService.entity.Tour;
 import com.example.TourManagementService.entity.TourBookings;
 import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.repository.TourRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import com.example.TourManagementService.dto.BookingNotificationDto;
 import java.util.List;
 
 @Service
@@ -62,8 +65,20 @@ public class TourService {
         tourBookingsRepository.deletedByTourIdandBookingId(tourId, bookingId);
     }
     //method to add a booking to a tour
-    public void addBooking(int tourId, int bookingId) {
-        Tour tour = getTourById(tourId);
-        tourBookingsRepository.updateTourBookingsByBookingIdAnd(tourId, bookingId);
+    @PostMapping("/{tourId}/addBooking")
+    public ResponseEntity<String> addBookingtoTour(@RequestBody BookingNotificationDto bookingNotificationDto) {
+        try {
+            handleNewBooking(bookingNotificationDto);
+            return ResponseEntity.ok("Booking added successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    public void handleNewBooking(BookingNotificationDto bookingNotificationDto) {
+        TourBookings tourBookings = new TourBookings();
+        tourBookings.setBookingId(bookingNotificationDto.getBookingId());
+        tourBookings.setTourId(bookingNotificationDto.getTourId());
+        tourBookingsRepository.save(tourBookings);
     }
 }

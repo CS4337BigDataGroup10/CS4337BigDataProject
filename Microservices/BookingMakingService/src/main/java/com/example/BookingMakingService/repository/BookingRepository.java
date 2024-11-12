@@ -1,17 +1,13 @@
 package com.example.BookingMakingService.repository;
 
-import org.springframework.data.jpa.repository.Modifying;
+import com.example.TourManagementService.entity.TourBookings;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public class BookingRepository extends JpaRepository<TourBookings, Integer> {
-    @Modifying
-    @Query("DELETE FROM TourBookings t WHERE t.bookingId = ?2")
-    void deleteBooking(int tourId, int bookingId) {
+import java.util.List;
 
-    }
+public interface BookingRepository extends JpaRepository<TourBookings, Integer> {
 
-
-    void addBooking(int tourId, int bookingId);
-
-
+    @Query("SELECT t FROM TourBookings t WHERE t.bookingId != null")
+    List<TourBookings> getAllBookings();
 }

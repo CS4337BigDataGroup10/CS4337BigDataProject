@@ -10,21 +10,23 @@ public class TourBookings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
     @JoinColumn(name = "bookingId", nullable = false)
-    private Booking bookingId;
+    private int bookingId;
 
-    @ManyToOne
     @JoinColumn(name = "tourId", nullable = false)
-    private Tour tour;
+    private int tourId;
 
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public Booking getBookingId() { return bookingId; }
-    public void setBookingId(Booking bookingId) { this.bookingId = bookingId; }
+    public int getBookingId() { return bookingId; }
+    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
 
-    public Tour getTour() { return tour; }
-    public void setTour(Tour tour) { this.tour = tour; }
+    public int getTourId() { return tourId; }
+    public int setTourId(int new_tourId) {
+        this.tourId = new_tourId;
+        return new_tourId;
+    }
+
 }

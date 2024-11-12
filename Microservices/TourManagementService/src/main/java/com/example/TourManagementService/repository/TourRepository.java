@@ -12,6 +12,4 @@ public interface TourRepository extends JpaRepository<Tour, Integer> {
 
     @Query("SELECT t FROM Tour t WHERE t.participantCount < 20")
     List<Tour> findAvailableTours();
-
-    Long deleteByName(int bookingId);
 }
