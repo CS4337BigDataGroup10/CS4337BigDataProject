@@ -1,6 +1,6 @@
 package com.example.BookingMakingService.repository;
 
-import com.example.TourManagementService.entity.TourBookings;
+import com.example.BookingMakingService.entity.TourBookings;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
