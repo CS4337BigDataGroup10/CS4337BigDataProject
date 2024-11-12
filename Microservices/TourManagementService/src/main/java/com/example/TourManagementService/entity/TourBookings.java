@@ -12,7 +12,7 @@ public class TourBookings {
 
     @ManyToOne
     @JoinColumn(name = "bookingId", nullable = false)
-    private Booking booking;
+    private Booking bookingId;
 
     @ManyToOne
     @JoinColumn(name = "tourId", nullable = false)
@@ -22,8 +22,8 @@ public class TourBookings {
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public Booking getBooking() { return booking; }
-    public void setBooking(Booking booking) { this.booking = booking; }
+    public Booking getBookingId() { return bookingId; }
+    public void setBookingId(Booking bookingId) { this.bookingId = bookingId; }
 
     public Tour getTour() { return tour; }
     public void setTour(Tour tour) { this.tour = tour; }

@@ -55,16 +55,10 @@ public class TourService {
     //method to remove a booking from a tour
     public void removeBooking(int tourId, int bookingId) {
         Tour tour = getTourById(tourId);
-        //update participant count
-        //@query("DELETE FROM Booking WHERE tourId = tourId AND bookingId = bookingId")
-        //need to delete from the tour booking table
     }
     //method to add a booking to a tour
     public void addBooking(int tourId, int bookingId) {
         Tour tour = getTourById(tourId);
-        //update participant count
-        //need to add from the tour booking table
-        //@query("INSERT INTO Booking (bookingId, emailId, size) VALUES (bookingId, emailId, size)")
     }
 
 }
