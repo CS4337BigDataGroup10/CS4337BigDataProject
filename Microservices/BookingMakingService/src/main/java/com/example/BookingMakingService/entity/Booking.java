@@ -1,6 +1,5 @@
 package com.example.BookingMakingService.entity;
 
-import com.example.TourManagementService.entity.User;
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +14,10 @@ public class Booking {
     @JoinColumn(name = "emailId", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "tourId", nullable = false)
+    private Tour tour;
+
     @Column(nullable = false)
     private int size; // Number of participants in this booking
 
@@ -27,4 +30,8 @@ public class Booking {
 
     public int getSize() { return size; }
     public void setSize(int size) { this.size = size; }
+
+    public Tour getTour() {
+        return tour;
+    }
 }

@@ -23,7 +23,7 @@ public class TourBookings {
     public int getBookingId() { return bookingId; }
     public void setBookingId(int bookingId) { this.bookingId = bookingId; }
 
-    public int getTourId() { return tourId; }
+    public int getTourId(int tourId) { return this.tourId; }
     public int setTourId(int new_tourId) {
         this.tourId = new_tourId;
         return new_tourId;

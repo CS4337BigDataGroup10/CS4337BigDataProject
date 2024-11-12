@@ -1,5 +1,6 @@
 package com.example.TourManagementService.service;
 
+import com.example.TourManagementService.dto.BookingNotificationDTO;
 import com.example.TourManagementService.entity.Tour;
 import com.example.TourManagementService.entity.TourBookings;
 import com.example.TourManagementService.repository.TourBookingsRepository;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import com.example.TourManagementService.dto.BookingNotificationDto;
 import java.util.List;
 
 @Service
@@ -66,7 +66,7 @@ public class TourService {
     }
     //method to add a booking to a tour
     @PostMapping("/{tourId}/addBooking")
-    public ResponseEntity<String> addBookingtoTour(@RequestBody BookingNotificationDto bookingNotificationDto) {
+    public ResponseEntity<String> addBookingtoTour(@RequestBody BookingNotificationDTO bookingNotificationDto) {
         try {
             handleNewBooking(bookingNotificationDto);
             return ResponseEntity.ok("Booking added successfully.");
@@ -75,8 +75,9 @@ public class TourService {
         }
     }
     
-    public void handleNewBooking(BookingNotificationDto bookingNotificationDto) {
+    public void handleNewBooking(BookingNotificationDTO bookingNotificationDto) {
         TourBookings tourBookings = new TourBookings();
+        tourBookings.getTourId(bookingNotificationDto.getTourId());
         tourBookings.setBookingId(bookingNotificationDto.getBookingId());
         tourBookings.setTourId(bookingNotificationDto.getTourId());
         tourBookingsRepository.save(tourBookings);

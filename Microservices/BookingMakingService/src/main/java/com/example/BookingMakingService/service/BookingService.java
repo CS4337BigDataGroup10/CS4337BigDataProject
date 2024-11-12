@@ -1,5 +1,6 @@
 package com.example.BookingMakingService.service;
 
+import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,4 +16,7 @@ public class BookingService {
         return bookingRepository.getAllBookings().toString();
     }
 
+    public Booking createBooking(Booking booking) {
+        return new Booking();
+    }
 }
