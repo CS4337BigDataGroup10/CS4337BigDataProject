@@ -1,9 +1,15 @@
 package com.example.TourManagementService.service;
 
+import com.example.TourManagementService.dto.BookingNotificationDTO;
 import com.example.TourManagementService.entity.Tour;
+import com.example.TourManagementService.entity.TourBookings;
+import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.repository.TourRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -12,11 +18,13 @@ import java.util.List;
 public class TourService {
 
     private final TourRepository tourRepository;
+    private final TourBookingsRepository tourBookingsRepository;
     private final RestTemplate restTemplate;
 
-    public TourService(TourRepository tourRepository, RestTemplate restTemplate) {
+    public TourService(TourRepository tourRepository, TourBookingsRepository tourBookingsRepository, RestTemplate restTemplate) {
         this.tourRepository = tourRepository;
         this.restTemplate = restTemplate;
+        this.tourBookingsRepository = tourBookingsRepository;
     }
 
     public List<Tour> getAvailableTours() {
@@ -84,6 +92,29 @@ public class TourService {
 
         tour.setParticipantCount(newParticipantCount);
         tourRepository.save(tour);
+    }
+    //method to remove a booking from a tour
+    public void removeBooking(int tourId, int bookingId) {
+        Tour tour = getTourById(tourId);
+        tourBookingsRepository.deletedByTourIdandBookingId(tourId, bookingId);
+    }
+    //method to add a booking to a tour
+    @PostMapping("/{tourId}/addBooking")
+    public ResponseEntity<String> addBookingtoTour(@RequestBody BookingNotificationDTO bookingNotificationDto) {
+        try {
+            handleNewBooking(bookingNotificationDto);
+            return ResponseEntity.ok("Booking added successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    public void handleNewBooking(BookingNotificationDTO bookingNotificationDto) {
+        TourBookings tourBookings = new TourBookings();
+        tourBookings.getTourId(bookingNotificationDto.getTourId());
+        tourBookings.setBookingId(bookingNotificationDto.getBookingId());
+        tourBookings.setTourId(bookingNotificationDto.getTourId());
+        tourBookingsRepository.save(tourBookings);
     }
     public Tour createTour(Tour tour) {
         return tourRepository.save(tour);
