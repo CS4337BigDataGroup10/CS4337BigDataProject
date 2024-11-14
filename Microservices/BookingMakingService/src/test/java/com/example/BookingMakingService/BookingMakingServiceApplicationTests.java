@@ -6,9 +6,4 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class BookingMakingServiceApplicationTests {
 
-	@Test
-	void contextLoads() {
-
-	}
-
 }

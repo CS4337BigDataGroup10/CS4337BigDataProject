@@ -1,7 +1,9 @@
 package com.example.BookingMakingService.service;
 
 import com.example.BookingMakingService.entity.Booking;
+import com.example.BookingMakingService.entity.TourBookings;
 import com.example.BookingMakingService.repository.BookingRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +18,9 @@ public class BookingService {
         return bookingRepository.getAllBookings().toString();
     }
 
+    @Transactional
     public Booking createBooking(Booking booking) {
-        return new Booking();
+        bookingRepository.save(booking);
+        return booking;
     }
 }

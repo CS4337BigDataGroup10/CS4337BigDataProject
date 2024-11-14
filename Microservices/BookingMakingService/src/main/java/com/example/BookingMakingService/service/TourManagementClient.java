@@ -2,7 +2,9 @@ package com.example.BookingMakingService.service;
 
 import com.example.BookingMakingService.dto.BookingNotificationDTO;
 import com.example.BookingMakingService.entity.Booking;
+import com.example.BookingMakingService.entity.Tour;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/tour-management")
 public class TourManagementClient {
@@ -22,6 +26,17 @@ public class TourManagementClient {
     @Autowired
     public TourManagementClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+    }
+    //TODO may need to change the url to the correct name when we implement eureka server.
+    public List<Tour> getNonFullTours() {
+        String url = "http://tour-management-service/api/tours/available"; // This is the end point of the tour management service to see what tours are available. It checks any tour less than 20
+        ResponseEntity<List<Tour>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Tour>>() {}
+        );
+        return response.getBody();
     }
 
     @PostMapping("/notify")
