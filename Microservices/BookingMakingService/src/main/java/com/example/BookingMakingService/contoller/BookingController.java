@@ -2,17 +2,14 @@ package com.example.BookingMakingService.contoller;
 
 import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.entity.Tour;
-import com.example.BookingMakingService.entity.TourBookings;
 import com.example.BookingMakingService.service.BookingService;
 import com.example.BookingMakingService.service.TourManagementClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
 @RestController
@@ -47,6 +44,7 @@ public class BookingController {
         }
 
         // Step 3: Proceed with booking creation
+        //Adds to db of booking repository
         Booking newBooking = bookingService.createBooking(booking);
         tourManagementClient.notifyTourManagement(newBooking); //this notifys tour management service that the booking has been created after going through the checks.
         return ResponseEntity.ok("Booking created successfully and notification sent.");

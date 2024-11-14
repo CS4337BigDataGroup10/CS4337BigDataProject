@@ -27,7 +27,7 @@ public class TourManagementClient {
     public TourManagementClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
-    //TODO may need to change the url to the correct name when we implement eureka server.
+    //may need to change the url to the correct name when we implement eureka server.
     public List<Tour> getNonFullTours() {
         String url = "http://tour-management-service/api/tours/available"; // This is the end point of the tour management service to see what tours are available. It checks any tour less than 20
         ResponseEntity<List<Tour>> response = restTemplate.exchange(
@@ -42,6 +42,8 @@ public class TourManagementClient {
     @PostMapping("/notify")
     public ResponseEntity<String> notifyTourManagement(@RequestBody Booking booking) {
         // Prepare the BookingNotificationDto
+        //this is the notification that is sent to the tour management service
+        //I am sending only the booking id and the tour id
         BookingNotificationDTO notificationDto = new BookingNotificationDTO();
         notificationDto.setBookingId(booking.getBookingId());
         notificationDto.setTourId(booking.getTour().getTourId());
@@ -49,12 +51,12 @@ public class TourManagementClient {
         // Defining the URL to the tourmanagementservice endpoint
         String url = "http://tourmanagementservice/tour-bookings/add-booking";
 
-        // Create the HTTP request entity
+        // Creating the HTTP request entity
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
         HttpEntity<BookingNotificationDTO> request = new HttpEntity<>(notificationDto, headers);
 
-        // Send POST request using RestTemplate
+        // Sending POST request using RestTemplate
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 
         return ResponseEntity.ok("Notification sent to tour management service. Response: " + response.getBody());
