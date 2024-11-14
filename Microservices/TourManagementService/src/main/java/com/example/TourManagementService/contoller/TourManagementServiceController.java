@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tours")
+@RequestMapping("/tours")
 public class TourManagementServiceController {
 
     private final TourService tourService;
@@ -41,23 +41,18 @@ public class TourManagementServiceController {
         }
     }
 
-    @PutMapping("/{tourId}/assign-guide")
-    public ResponseEntity<String> assignTourGuide(@PathVariable int tourId, @RequestParam String tourGuideId) {
-        try {
-            tourService.assignTourGuide(tourId, tourGuideId);
-            return ResponseEntity.ok("Tour guide assigned successfully.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PostMapping("/{tourId}/self-assign")
+    public void selfAssignToTour(@PathVariable int tourId, @RequestParam String emailId) {
+        tourService.selfAssignToTour(tourId, emailId);
     }
 
-    @PutMapping("/{tourId}/deassign-guide")
-    public ResponseEntity<String> deassignTourGuide(@PathVariable int tourId) {
-        try {
-            tourService.deassignTourGuide(tourId);
-            return ResponseEntity.ok("Tour guide deassigned successfully.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PostMapping("/{tourId}/self-deassign")
+    public void selfDeassignFromTour(@PathVariable int tourId, @RequestParam String emailId) {
+        tourService.selfDeassignFromTour(tourId, emailId);
+    }
+    @PostMapping("/create")
+    public ResponseEntity<Tour> createTour(@RequestBody Tour tour) {
+        Tour savedTour = tourService.createTour(tour);
+        return ResponseEntity.ok(savedTour);
     }
 }

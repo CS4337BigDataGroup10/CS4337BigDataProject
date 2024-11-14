@@ -10,7 +10,7 @@ public class Tour {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int tourId;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String emailId;
 
     @Column(nullable = false)
@@ -20,16 +20,7 @@ public class Tour {
     private int participantCount;
 
     @Column(nullable = false)
-    private String tourGuideId;
-
-    // For admin
-    public String getTourGuideId() {
-        return tourGuideId;
-    }
-
-    public void setTourGuideId(String tourGuideId) {
-        this.tourGuideId = tourGuideId;
-    }
+    private int maxCapacity;
 
     // Getters and Setters
     public int getTourId() {
@@ -62,5 +53,13 @@ public class Tour {
 
     public void setParticipantCount(int participantCount) {
         this.participantCount = participantCount;
+    }
+
+    public int getMaxCapacity() {
+        return maxCapacity;
+    }
+
+    public void setMaxCapacity(int maxCapacity) {
+        this.maxCapacity = maxCapacity;
     }
 }

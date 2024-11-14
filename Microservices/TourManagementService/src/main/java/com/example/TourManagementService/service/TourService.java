@@ -26,16 +26,27 @@ public class TourService {
                 .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
     }
 
-    // For admin
-    public void assignTourGuide(int tourId, String tourGuideId){
-        Tour tour = getTourById(tourId);
-        tour.setTourGuideId(tourGuideId);
+    public void selfAssignToTour(int tourId, String emailId) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
+
+        tour.setEmailId(emailId);
         tourRepository.save(tour);
+
+        System.out.println("User with EmailID: " + emailId + " assigned to Tour ID: " + tourId);
     }
-    public void deassignTourGuide(int tourId) {
-        Tour tour = getTourById(tourId);
-        tour.setTourGuideId(null);
+
+    public void selfDeassignFromTour(int tourId, String emailId) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
+
+        if (!emailId.equals(tour.getEmailId())) {
+            throw new IllegalArgumentException("You are not assigned to this tour or already deassigned.");
+        }
+        tour.setEmailId(null);  // Clear the assignment
         tourRepository.save(tour);
+
+        System.out.println("User with EmailID: " + emailId + " deassigned from Tour ID: " + tourId);
     }
 
     // Method to update participant count in a tour
@@ -51,5 +62,8 @@ public class TourService {
 
         tour.setParticipantCount(newParticipantCount);
         tourRepository.save(tour);
+    }
+    public Tour createTour(Tour tour) {
+        return tourRepository.save(tour);
     }
 }
