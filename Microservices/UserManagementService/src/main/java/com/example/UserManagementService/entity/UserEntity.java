@@ -1,27 +1,22 @@
 package com.example.UserManagementService.entity;
-import java.time.LocalDateTime;
 
 public class UserEntity {
-    private Long id;
+
     private String name;
     private String email;
-    private Role role;
+    private boolean isTourGuide = false; // defaults to false, we can alter in database
 
     // Default constructor
     public UserEntity() {}
 
     // Constructor with fields
-    public UserEntity(Long id, String name, String email, Role role) {
-        this.id = id;
+    public UserEntity( String name, String email, boolean isTourGuide) {
+
         this.name = name;
         this.email = email;
-        this.role = role;
+        this.isTourGuide = isTourGuide;
     }
 
-    // Getters
-    public Long getId() {
-        return id;
-    }
 
     public String getName() {
         return name;
@@ -31,14 +26,11 @@ public class UserEntity {
         return email;
     }
 
-    public Role getRole() {
-        return role;
+    public boolean isTourGuide() {
+        return isTourGuide;
     }
 
-    // Setters
-    public void setId(Long id) {
-        this.id = id;
-    }
+
 
     public void setName(String name) {
         this.name = name;
@@ -49,16 +41,15 @@ public class UserEntity {
     }
 
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setIsTourGuide(boolean isTourGuide) {
+        this.isTourGuide = isTourGuide;
     }
 
 
-    // Role enum
+    // Role enum deprecated
     public enum Role {
         USER,           // Represents a customer
         TOUR_GUIDE,     // Represents a tour guide
-        ADMIN           // Represents an admin
     }
 
 }
