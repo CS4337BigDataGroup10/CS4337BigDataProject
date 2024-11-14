@@ -1,9 +1,12 @@
 package com.example.AuthenticationService.service;
 
-import com.example.AuthenticationService.Objects.User;
+import com.example.AuthenticationService.Objects.oAuthUser;
+import com.example.AuthenticationService.Objects.oAuthResponse;
 import com.example.AuthenticationService.dto.UserDTO;
+import com.example.AuthenticationService.entity.UserEntity;
+import com.example.AuthenticationService.repository.UserRepository;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,94 +15,108 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AuthenticationService {
-    private String clientId;
 
+    private final String clientId;
+    private final String clientSecret;
+    private final UserRepository userRepository;
+    private final String redirectUrl;
 
-    private String clientSecret;
-
-    public AuthenticationService(@Value("${google.client.id}") String clientId,
-                                 @Value("${google.client.secret}") String clientSecret) {
-
+    @Autowired
+    public AuthenticationService(
+            @Value("${google.client.id}") String clientId,
+            @Value("${google.client.secret}") String clientSecret,
+            @Value("${redirect.url}") String redirectUrl,
+            UserRepository userRepository) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.userRepository = userRepository;
+        this.redirectUrl = redirectUrl;
     }
 
+    public UserDTO authenticationHandler(String code) {
+        // Exchange Auth code for access token
+        oAuthResponse oAuthResponse = codeExchangeFromOauth(code);
+        if (oAuthResponse == null) {
+            throw new RuntimeException("Failed to obtain access token from OAuth.");
+        }
 
-    private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
-    private static final String REDIRECT_URI = "http://localhost:8080/grantcode";
+        // Get the token from the response
+        String oAuthToken = oAuthResponse.getAccess_token();
+        // Get the user details from the access token
+        oAuthUser userInfo = getProfileDetailsGoogle(oAuthToken);
 
-    private String getOauthAccessTokenGoogle(String code) {
-        //allows for HTTP request
+        // Find user in database or create a new one
+        UserEntity user = userRepository.findByEmail(userInfo.getEmail())
+                .orElseGet(() -> createNewUserUsingOauthToken(userInfo));
+
+        // Create a UserDTO to return
+        UserDTO userDto = new UserDTO();
+        userDto.setEmail(user.getEmail());
+        // Add other fields to UserDTO as necessary
+        return userDto;
+    }
+
+    private UserEntity createNewUserUsingOauthToken(oAuthUser userInfo) {
+        UserEntity user = new UserEntity();
+        user.setEmail(userInfo.getEmail());
+        user.setRefreshToken(UUID.randomUUID().toString());
+        user.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
+        userRepository.save(user);
+        return user;
+    }
+
+    private oAuthResponse codeExchangeFromOauth(String code) {
         RestTemplate restTemplate = new RestTemplate();
-        //allows me to set http headers for my request
-        HttpHeaders httpHeaders = new HttpHeaders();
-        //Set the media type
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        //Map whic can hold multiple values for the using the same key
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        //Authorization code for oAuth
         params.add("code", code);
-        //Set the response endpoint
-        params.add("redirect_uri", "http://localhost:8081/grantcode");
-        //A unique identifier for your application
-        params.add("client_id", clientId);
-        //A secret unique identifier for your application
-        params.add("client_secret", clientSecret);
-        //This defines access permissions to profile
-        params.add("scope", "https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile");
-        //This defines access permissions to email
-        params.add("scope", "https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email");
-        params.add("scope", "openid");
-        //Indicates we are using the Authentication flow
+        params.add("redirect_uri", this.redirectUrl );
+        params.add("client_id", this.clientId);
+        params.add("client_secret", this.clientSecret);
+        params.add("scope", "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid");
         params.add("grant_type", "authorization_code");
 
-        //Combines body and the header
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
 
-        String url = "https://oauth2.googleapis.com/token";
-
-        String response = restTemplate.postForObject(url, requestEntity, String.class);
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            JsonNode jsonNode = objectMapper.readTree(response);
-            return jsonNode.get("access_token").asText();
-        }catch (JsonProcessingException e) {
-          throw new RuntimeException(e);
+            String url = "https://oauth2.googleapis.com/token";
+            ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to exchange code for access token.");
+            }
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            return objectMapper.treeToValue(jsonNode, oAuthResponse.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error exchanging code for access token", e);
         }
     }
 
-
-    private User getProfileDetailsGoogle(String accessToken) {
-        //allows for HTTP request
+    private oAuthUser getProfileDetailsGoogle(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();
-        //allows me to set http headers for my request
         HttpHeaders httpHeaders = new HttpHeaders();
-        //adds the access token to the header of HTTP request
         httpHeaders.setBearerAuth(accessToken);
-        //wrapper for HTTP object : Header Params Body
         HttpEntity<String> requestEntity = new HttpEntity<>(httpHeaders);
-        //Set URL to the Google oAuth Server
-        String url = "https://www.googleapis.com/oauth2/v2/userinfo";
-        //Create a Wrapper containing the Response
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
-        //Setting request response to a string
-        String responseBody = response.getBody();
-        ObjectMapper objectMapper = new ObjectMapper();
-        //Map the response to the User Object
-        try {
-            User user = objectMapper.readValue(responseBody, User.class);
-            return user;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    public User returnUserInfo(String code) {
-        String accessToken = getOauthAccessTokenGoogle(code);
-        User userDetails = getProfileDetailsGoogle(accessToken);
-        return userDetails;
+        String url = "https://www.googleapis.com/oauth2/v2/userinfo";
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response.getBody(), oAuthUser.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error parsing user profile details", e);
+        }
     }
 }

@@ -1,10 +1,13 @@
 package com.example.AuthenticationService.Objects;
 
-public class User {
+public class oAuthUser {
     String id;
     String name;
     String given_name;
     String family_name;
+    String email;
+    boolean verified_email;
+    String picture;
 
     public void setId(String id) {
         this.id = id;
@@ -34,8 +37,7 @@ public class User {
         this.picture = picture;
     }
 
-    String email;
-    boolean verified_email;
+
 
     public boolean isVerified_email() {
         return verified_email;
@@ -65,7 +67,6 @@ public class User {
         return id;
     }
 
-    String picture;
 }
 
 
