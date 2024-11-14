@@ -1,5 +1,6 @@
 package com.example.TourManagementService.contoller;
 
+import com.example.TourManagementService.dto.BookingNotificationDTO;
 import com.example.TourManagementService.entity.Tour;
 import com.example.TourManagementService.service.TourService;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +57,25 @@ public class TourManagementServiceController {
         try {
             tourService.deassignTourGuide(tourId);
             return ResponseEntity.ok("Tour guide deassigned successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{tourId}/addBooking")
+    public ResponseEntity<String> addBooking(BookingNotificationDTO bookingNotificationDto) {
+        try {
+            tourService.addBookingtoTour(bookingNotificationDto);
+            return ResponseEntity.ok("Booking added successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @PutMapping("/{tourId}/removeBooking")
+    public ResponseEntity<String> removeBooking(BookingNotificationDTO bookingNotificationDto) {
+        try {
+            tourService.removeBooking(bookingNotificationDto.getTourId(), bookingNotificationDto.getBookingId());
+            return ResponseEntity.ok("Booking removed successfully.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
