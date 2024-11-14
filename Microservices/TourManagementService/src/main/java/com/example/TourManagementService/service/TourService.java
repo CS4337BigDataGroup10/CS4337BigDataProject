@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 @Service
 public class TourService {
 
@@ -15,6 +17,10 @@ public class TourService {
     public TourService(TourRepository tourRepository, RestTemplate restTemplate) {
         this.tourRepository = tourRepository;
         this.restTemplate = restTemplate;
+    }
+
+    public List<Tour> getAvailableTours() {
+        return tourRepository.findAvailableTours();
     }
 
     // Method to fetch a tour by ID
