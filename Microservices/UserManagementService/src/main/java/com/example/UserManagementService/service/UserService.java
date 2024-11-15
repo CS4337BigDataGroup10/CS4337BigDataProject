@@ -2,6 +2,7 @@ package com.example.UserManagementService.service;
 
 import com.example.UserManagementService.dto.UserDTO;
 import com.example.UserManagementService.entity.UserEntity;
+import com.example.UserManagementService.exceptions.UserManagementServiceExceptions;
 import com.example.UserManagementService.repository.UserManagementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -96,12 +97,9 @@ public class UserService {
     }
 
     public boolean isTourGuide(String email) {
-        Optional<UserEntity> userOptional = userRepository.findById(email);
-        if (userOptional.isPresent()) {
-            UserEntity user = userOptional.get();
-            return user.isTourGuide(); // returns the boolean value of isTourGuide
-        }
-        return false; // user is not found 
+        UserEntity user = userRepository.findById(email)
+                .orElseThrow(() -> new UserManagementServiceExceptions("User not found with email: " + email));
+        return user.isTourGuide(); // returns the boolean value of isTourGuide
     }
 }
 
