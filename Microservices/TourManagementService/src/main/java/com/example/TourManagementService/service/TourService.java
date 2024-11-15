@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.List;
 
 @Service
@@ -17,9 +19,11 @@ public class TourService {
 
     private final TourRepository tourRepository;
     private final TourBookingsRepository tourBookingsRepository;
+    private final RestTemplate restTemplate;
 
-    public TourService(TourRepository tourRepository, TourBookingsRepository tourBookingsRepository) {
+    public TourService(TourRepository tourRepository, TourBookingsRepository tourBookingsRepository, RestTemplate restTemplate) {
         this.tourRepository = tourRepository;
+        this.restTemplate = restTemplate;
         this.tourBookingsRepository = tourBookingsRepository;
     }
 
@@ -33,16 +37,46 @@ public class TourService {
                 .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
     }
 
-    // For admin
-    public void assignTourGuide(int tourId, String tourGuideId){
-        Tour tour = getTourById(tourId);
-        tour.setTourGuideId(tourGuideId);
+    public void selfAssignToTour(int tourId, String emailId) {
+        String userManagementServiceUrl = "http://USER-MANAGEMENT-SERVICE/users/" + emailId + "/isTourGuide";
+        Boolean isTourGuide = restTemplate.getForObject(userManagementServiceUrl, Boolean.class);
+
+        if (Boolean.FALSE.equals(isTourGuide)) {
+            throw new IllegalArgumentException("Only tour guides can assign themselves to a tour.");
+        }
+
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
+
+        if (tour.getEmailId() != null) {
+            throw new IllegalArgumentException("Tour already has a tour guide assigned.");
+        }
+
+        tour.setEmailId(emailId);
         tourRepository.save(tour);
+
+        System.out.println("Tour guide with EmailID: " + emailId + " assigned to Tour ID: " + tourId);
     }
-    public void deassignTourGuide(int tourId) {
-        Tour tour = getTourById(tourId);
-        tour.setTourGuideId(null);
+
+    public void selfDeassignFromTour(int tourId, String emailId) {
+        String userManagementServiceUrl = "http://USER-MANAGEMENT-SERVICE/users/" + emailId + "/isTourGuide";
+        Boolean isTourGuide = restTemplate.getForObject(userManagementServiceUrl, Boolean.class);
+
+        if (Boolean.FALSE.equals(isTourGuide)) {
+            throw new IllegalArgumentException("Only tour guides can deassign themselves from a tour.");
+        }
+
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
+
+        if (!emailId.equals(tour.getEmailId())) {
+            throw new IllegalArgumentException("You are not the assigned tour guide for this tour.");
+        }
+
+        tour.setEmailId(null);
         tourRepository.save(tour);
+
+        System.out.println("Tour guide with EmailID: " + emailId + " deassigned from Tour ID: " + tourId);
     }
 
     // Method to update participant count in a tour
@@ -74,12 +108,15 @@ public class TourService {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+
     public void handleNewBooking(BookingNotificationDTO bookingNotificationDto) {
         TourBookings tourBookings = new TourBookings();
         tourBookings.getTourId(bookingNotificationDto.getTourId());
         tourBookings.setBookingId(bookingNotificationDto.getBookingId());
         tourBookings.setTourId(bookingNotificationDto.getTourId());
         tourBookingsRepository.save(tourBookings);
+    }
+    public Tour createTour(Tour tour) {
+        return tourRepository.save(tour);
     }
 }
