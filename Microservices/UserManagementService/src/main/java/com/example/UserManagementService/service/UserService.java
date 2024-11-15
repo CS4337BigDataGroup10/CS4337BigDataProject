@@ -17,11 +17,11 @@ public class UserService {
 
 
     @Autowired
-    public UserService(UserManagementRepository userManagementRepository) {
+    public UserService(UserManagementRepository userManagementRepository, RestTemplate restTemplate) {
         this.userRepository = userManagementRepository;
         this.restTemplate = restTemplate;
-
     }
+
 
     public UserEntity createUser(String name, String email) {
         UserEntity user = new UserEntity();
