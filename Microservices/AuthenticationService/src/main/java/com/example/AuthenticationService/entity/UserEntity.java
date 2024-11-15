@@ -20,7 +20,6 @@ public class UserEntity {
     @Column(name = "refresh_token_expiry")
     private LocalDateTime refreshTokenExpiry;
 
-    // Constructors, Getters, Setters
 
     public UserEntity() {}
 

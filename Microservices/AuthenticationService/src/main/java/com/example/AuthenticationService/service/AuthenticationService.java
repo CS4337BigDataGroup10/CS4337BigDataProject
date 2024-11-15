@@ -18,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,17 +27,20 @@ public class AuthenticationService {
     private final String clientSecret;
     private final UserRepository userRepository;
     private final String redirectUrl;
+    private final JwtService jwtService;
 
     @Autowired
     public AuthenticationService(
             @Value("${google.client.id}") String clientId,
             @Value("${google.client.secret}") String clientSecret,
             @Value("${redirect.url}") String redirectUrl,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            JwtService jwtService) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.userRepository = userRepository;
         this.redirectUrl = redirectUrl;
+        this.jwtService = jwtService;
     }
 
     public UserDTO authenticationHandler(String code) {
@@ -56,11 +58,32 @@ public class AuthenticationService {
         // Find user in database or create a new one
         UserEntity user = userRepository.findByEmail(userInfo.getEmail())
                 .orElseGet(() -> createNewUserUsingOauthToken(userInfo));
-
-        // Create a UserDTO to return
         UserDTO userDto = new UserDTO();
+
+        // Check if existing JWT is valid
+        String jwtToken = userDto.getJwtToken(); // Retrieve saved token from memory, if stored
+        boolean isJwtValid = false;
+        try {
+            if (jwtToken != null) {
+                jwtService.validateToken(jwtToken); // Use the instance
+                isJwtValid = true;
+            }
+        } catch (RuntimeException e) {
+        }
+
+        // Generate new JWT if necessary
+        if (!isJwtValid) {
+            long oneHourInMillis = 60 * 60 * 1000;
+            jwtToken = jwtService.generateToken(user.getEmail(), oneHourInMillis);
+            userDto.setJwtToken(jwtToken);
+        }
+
         userDto.setEmail(user.getEmail());
-        // Add other fields to UserDTO as necessary
+        userDto.setGivenName(userInfo.getGiven_name());
+        userDto.setFamilyName(userInfo.getFamily_name());
+        userDto.setProfilePicture(userInfo.getPicture());
+        userDto.setRole("Customer");
+
         return userDto;
     }
 
@@ -80,7 +103,7 @@ public class AuthenticationService {
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", code);
-        params.add("redirect_uri", this.redirectUrl );
+        params.add("redirect_uri", this.redirectUrl);
         params.add("client_id", this.clientId);
         params.add("client_secret", this.clientSecret);
         params.add("scope", "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid");

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController // Change this to @RestController
+@RestController
 public class AuthenticationServiceController {
 
     private final AuthenticationService authenticationService;
@@ -39,6 +39,5 @@ public class AuthenticationServiceController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
-
 }
 
