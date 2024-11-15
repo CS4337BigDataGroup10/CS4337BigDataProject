@@ -5,16 +5,22 @@ import com.example.UserManagementService.entity.UserEntity;
 import com.example.UserManagementService.repository.UserManagementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.Optional;
 
 
 @Service
 public class UserService {
     private final UserManagementRepository userRepository;
+    private final RestTemplate restTemplate;
+
 
     @Autowired
     public UserService(UserManagementRepository userManagementRepository) {
         this.userRepository = userManagementRepository;
+        this.restTemplate = restTemplate;
+
     }
 
     public UserEntity createUser(String name, String email) {
@@ -55,10 +61,24 @@ public class UserService {
             UserEntity user = userOptional.get();
             userRepository.delete(user);
 
+            notifyAuthenticationService(email);
+
 
             return true; //  User was deleted successfully
         }
         return false; // User was not found
+    }
+
+    public void notifyAuthenticationService(String email) {
+        String authServiceUrl = "http://authentication-service/api/credentials/" + email; // Placeholder until service communication addressed
+
+        try {
+            // Send DELETE request to the AuthenticationService
+            restTemplate.delete(authServiceUrl);
+        } catch (Exception e) {
+            // Log the error (optionally handle retries or fallback logic)
+            System.err.println("Failed to notify AuthenticationService: " + e.getMessage());
+        }
     }
 
     public boolean becomeTourGuide(String email, String password) {
