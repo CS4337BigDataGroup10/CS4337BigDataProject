@@ -62,7 +62,7 @@ public class TourService {
     //method to remove a booking from a tour
     public void removeBooking(int tourId, int bookingId) {
         Tour tour = getTourById(tourId);
-        tourBookingsRepository.deletedByTourIdandBookingId(tourId, bookingId);
+        tourBookingsRepository.deleteByTourIdAndBookingId(tourId, bookingId);
     }
     //method to add a booking to a tour
     @PostMapping("/{tourId}/addBooking")
