@@ -1,4 +1,4 @@
 package com.example.BookingMakingService.exceptions;
 
-public class BookingMakingServiceExceptions {
+public class BookingExceptions {
 }
