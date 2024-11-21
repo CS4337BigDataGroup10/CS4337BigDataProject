@@ -3,6 +3,13 @@ a production-ready web application using Springboot, MySQL,  with microservice a
 
 ## Project Description
 
+This project includes 4 microservices. 
+1. User Service
+2. Authentication Service
+3. Booking 
+
+## Project Description
+
 This project includes 5 microservices. 
 1. User Service
 2. Authentication Service

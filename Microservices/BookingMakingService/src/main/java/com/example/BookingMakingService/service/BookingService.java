@@ -13,9 +13,11 @@ public class BookingService {
         this.bookingRepository = bookingRepository;
     }
     //this is querying my bookingrepositroy db to get all the bookings
+
     public String getAllBookings() {
         return bookingRepository.findAll().toString();
     }
+
     //this is saving the booking to the db
     //.save() is a JpaRepository method that is used to save the booking to the database.
     @Transactional
