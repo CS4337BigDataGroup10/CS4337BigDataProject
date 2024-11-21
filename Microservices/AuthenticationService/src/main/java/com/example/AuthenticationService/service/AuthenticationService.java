@@ -4,6 +4,7 @@ import com.example.AuthenticationService.Objects.oAuthUser;
 import com.example.AuthenticationService.Objects.oAuthResponse;
 import com.example.AuthenticationService.dto.UserDTO;
 import com.example.AuthenticationService.entity.UserEntity;
+import com.example.AuthenticationService.exceptions.AuthenticationServiceExceptions;
 import com.example.AuthenticationService.repository.UserRepository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,6 +19,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -42,103 +45,77 @@ public class AuthenticationService {
         this.jwtService = jwtService;
     }
 
-    public UserDTO authenticationHandler(String code) {
+    public Map<String, Object> authenticationHandler(String code) {
         oAuthResponse oAuthResponse = codeExchangeFromOauth(code);
         if (oAuthResponse == null) {
-            throw new RuntimeException("Failed to obtain access token from OAuth.");
+            throw new AuthenticationServiceExceptions.AuthenticationFailedException(
+                    "Failed to obtain access token from OAuth. Authorization code may be invalid or expired."
+            );
         }
 
         String oAuthToken = oAuthResponse.getAccess_token();
         oAuthUser userInfo = getProfileDetailsGoogle(oAuthToken);
+        checkIfUserExistsInDB(userInfo.getEmail());
+        String jwtToken = jwtService.generateToken(userInfo.getEmail());
 
-        UserEntity user = userRepository.findByEmail(userInfo.getEmail())
-                .orElseGet(() -> createNewUserUsingOauthToken(userInfo));
+        UserDTO userDto = createUserDtoForUserManagementService(userInfo);
+        Map<String, Object> response = new HashMap<>();
+        response.put("jwtToken", jwtToken);
+        response.put("userDto", userDto);
+
+        return response;
+    }
+
+    private UserDTO createUserDtoForUserManagementService(oAuthUser OauthUser) {
         UserDTO userDto = new UserDTO();
-
-        String jwtToken = userDto.getJwtToken();
-        boolean isJwtValid = false;
-        try {
-            if (jwtToken != null) {
-                jwtService.validateToken(jwtToken);
-                isJwtValid = true;
-            }
-        } catch (RuntimeException e) {
-            refreshTokenLogic(user.getEmail());
-        }
-
-        if (!isJwtValid) {
-            long oneHourInMillis = 60 * 60 * 1000;
-            jwtToken = jwtService.generateToken(user.getEmail(), oneHourInMillis);
-            userDto.setJwtToken(jwtToken);
-        }
-
-        userDto.setEmail(user.getEmail());
-        userDto.setGivenName(userInfo.getGiven_name());
-        userDto.setFamilyName(userInfo.getFamily_name());
-        userDto.setProfilePicture(userInfo.getPicture());
+        userDto.setEmail(OauthUser.getEmail());
+        userDto.setGivenName(OauthUser.getGiven_name());
+        userDto.setFamilyName(OauthUser.getFamily_name());
+        userDto.setProfilePicture(OauthUser.getPicture());
         userDto.setRole("Customer");
-
         return userDto;
     }
 
-    public String refreshUserToken(String email) {
-        // Retrieve the user from the database
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Check if the refresh token has expired
-        if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token has expired. User must reauthenticate.");
-        }
-
-        // Generate a new JWT token with a 1-hour expiry
-        long oneHourInMillis = 60 * 60 * 1000;
-        String newToken = jwtService.generateToken(email, oneHourInMillis);
-
-        // Save the new token to the UserEntity
-        user.setRefreshToken(newToken); // Assuming you want to save the JWT as the refresh token
-        user.setRefreshTokenExpiry(LocalDateTime.now().plusHours(1)); // Update expiry
-        userRepository.save(user); // Persist the changes
-
-        System.out.println("Generated and saved new JWT token for user: " + email);
-        return newToken;
+    public UserEntity checkIfUserExistsInDB(String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    // If user exists, check if the refresh token is expired
+                    checkIfRefreshTokenIsExpired(email);
+                    return user; // Return the existing user
+                })
+                .orElseGet(() -> createNewUserInDB(email)); // If user doesn't exist, create a new user
     }
 
-
-    public UserEntity getUserAuthDetails(String email) {
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return user;
-    }
-
-    private void refreshTokenLogic(String email) {
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
-            String newRefreshToken = UUID.randomUUID().toString();
-            LocalDateTime newExpiry = LocalDateTime.now().plusDays(7);
-
-            user.setRefreshToken(newRefreshToken);
-            user.setRefreshTokenExpiry(newExpiry);
-            userRepository.save(user);
-
-            System.out.println("Refresh token has been updated.");
-        } else {
-            System.out.println("Refresh token is still valid.");
-        }
-    }
-
-    private UserEntity createNewUserUsingOauthToken(oAuthUser userInfo) {
+    private UserEntity createNewUserInDB(String email) {
         UserEntity user = new UserEntity();
-        user.setEmail(userInfo.getEmail());
+        user.setEmail(email);
         user.setRefreshToken(UUID.randomUUID().toString());
         user.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
-        userRepository.save(user);
-        return user;
+        return userRepository.save(user); // Return the saved user
     }
 
-    private oAuthResponse codeExchangeFromOauth(String code) {
+    public void checkIfRefreshTokenIsExpired(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthenticationServiceExceptions.UserNotFoundException(
+                        "User with email '" + email + "' not found in the database."
+                ));
+
+        if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
+            generateNewRefreshToken(user);
+        }
+    }
+
+    private void generateNewRefreshToken(UserEntity user) {
+        String newRefreshToken = UUID.randomUUID().toString();
+        LocalDateTime newExpiry = LocalDateTime.now().plusDays(7);
+
+        user.setRefreshToken(newRefreshToken);
+        user.setRefreshTokenExpiry(newExpiry);
+        userRepository.save(user);
+        System.out.println("Refresh token has been updated.");
+    }
+
+    public oAuthResponse codeExchangeFromOauth(String code) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -157,18 +134,19 @@ public class AuthenticationService {
             String url = "https://oauth2.googleapis.com/token";
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("Failed to exchange code for access token.");
+                throw new AuthenticationServiceExceptions.OAuthTokenExchangeException(
+                        "Failed to exchange authorization code for access token. HTTP Status: " + response.getStatusCode()
+                );
             }
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             return objectMapper.treeToValue(jsonNode, oAuthResponse.class);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error exchanging code for access token", e);
+            throw new AuthenticationServiceExceptions.OAuthTokenExchangeException("Error during token exchange", e);
         }
     }
 
-    private oAuthUser getProfileDetailsGoogle(String accessToken) {
+    public oAuthUser getProfileDetailsGoogle(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setBearerAuth(accessToken);
@@ -181,7 +159,9 @@ public class AuthenticationService {
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response.getBody(), oAuthUser.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error parsing user profile details", e);
+            throw new AuthenticationServiceExceptions.UserProfileRetrievalException(
+                    "Failed to retrieve user profile details from Google", e
+            );
         }
     }
 }

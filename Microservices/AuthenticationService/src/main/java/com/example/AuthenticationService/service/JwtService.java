@@ -1,9 +1,7 @@
 package com.example.AuthenticationService.service;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
+import com.example.AuthenticationService.exceptions.JwtServiceExceptions;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,11 +18,15 @@ public class JwtService {
         this.googleClientSecret = Keys.hmacShaKeyFor(googleClientSecret.getBytes());
     }
 
-    public String generateToken(String email, long expirationTime) {
+    public String generateToken(String email) {
+        // Define the token expiration time (1 hour in milliseconds)
+        long oneHourInMillis = 60 * 60 * 1000;
+
+        // Generate the token
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .setExpiration(new Date(System.currentTimeMillis() + oneHourInMillis))
                 .signWith(SignatureAlgorithm.HS256, googleClientSecret)
                 .compact();
     }
@@ -36,9 +38,9 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new RuntimeException("Token has expired", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Token is invalid", e);
+            throw new JwtServiceExceptions.TokenExpiredException("Token has expired", e);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new JwtServiceExceptions.InvalidTokenException("Token is invalid", e);
         }
     }
 }

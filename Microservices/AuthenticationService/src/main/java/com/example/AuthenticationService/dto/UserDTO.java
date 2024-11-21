@@ -2,21 +2,19 @@ package com.example.AuthenticationService.dto;
 
 public class UserDTO {
     private String email;
-    private String givenName; // First name
-    private String familyName; // Last name
-    private String profilePicture; // Profile picture URL
-    private String jwtToken; // JWT token
-    private String role; // User's role (e.g., ADMIN, USER, etc.)
+    private String givenName;
+    private String familyName;
+    private String profilePicture;
+    private String role;
 
     // Default constructor
     public UserDTO() {}
 
-    public UserDTO(String email, String givenName, String familyName, String profilePicture, String jwtToken, String role) {
+    public UserDTO(String email, String givenName, String familyName, String profilePicture, String role) {
         this.email = email;
         this.givenName = givenName;
         this.familyName = familyName;
         this.profilePicture = profilePicture;
-        this.jwtToken = jwtToken;
         this.role = role;
     }
 
@@ -52,14 +50,6 @@ public class UserDTO {
         this.profilePicture = profilePicture;
     }
 
-    public String getJwtToken() {
-        return jwtToken;
-    }
-
-    public void setJwtToken(String jwtToken) {
-        this.jwtToken = jwtToken;
-    }
-
     public String getRole() {
         return role;
     }
@@ -76,7 +66,6 @@ public class UserDTO {
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
                 ", profilePicture='" + profilePicture + '\'' +
-                ", jwtToken='" + jwtToken + '\'' +
                 ", role='" + role + '\'' +
                 '}';
     }

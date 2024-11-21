@@ -4,15 +4,20 @@ import com.example.AuthenticationService.dto.UserDTO;
 import com.example.AuthenticationService.entity.UserEntity;
 import com.example.AuthenticationService.service.AuthenticationService;
 import com.example.AuthenticationService.service.JwtService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationServiceController {
-
+    @Autowired
     private final AuthenticationService authenticationService;
+    @Autowired
     private final JwtService jwtService;
 
     public AuthenticationServiceController(AuthenticationService authenticationService, JwtService jwtService) {
@@ -21,13 +26,33 @@ public class AuthenticationServiceController {
     }
 
     @GetMapping("/grantcode")
-    public ResponseEntity<?> grantCode(@RequestParam(value = "code") String code) {
+    public String grantCode(@RequestParam(value = "code") String code) {
         try {
-            UserDTO user = authenticationService.authenticationHandler(code);
-            return ResponseEntity.ok(user);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            // Call authenticationHandler to get the JWT and UserDTO
+            Map<String, Object> authResponse = authenticationService.authenticationHandler(code);
+
+            // Extract JWT and UserDTO
+            String jwtToken = (String) authResponse.get("jwtToken");
+            UserDTO userDto = (UserDTO) authResponse.get("userDto");
+
+
+            // Send the UserDTO to the UserManagementService
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+            HttpEntity<UserDTO> requestEntity = new HttpEntity<>(userDto, headers);
+            RestTemplate restTemplate = new RestTemplate();
+
+//            ResponseEntity<?> userManagementResponse = restTemplate.exchange(
+//                    userManagementMicroservices,
+//                    HttpMethod.POST,
+//                    requestEntity,
+//                    Object.class // Replace with the expected response type
+//            );
+
+            return jwtToken;
+        } catch (RestClientException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -41,20 +66,20 @@ public class AuthenticationServiceController {
         }
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestParam("email") String email) {
-        try {
-            String newToken = authenticationService.refreshUserToken(email);
-            return ResponseEntity.ok(newToken);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
-    }
+//    @PostMapping("/refresh")
+//    public ResponseEntity<?> refreshToken(@RequestParam("email") String email) {
+//        try {
+//            String newToken = authenticationService.checkIfRefreshTokenIsExpired(email);
+//            return ResponseEntity.ok(newToken);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+//        }
+//    }
 
     @GetMapping("/user")
     public ResponseEntity<?> getUserDetails(@RequestParam("email") String email) {
         try {
-            UserEntity user = authenticationService.getUserAuthDetails(email);
+            UserEntity user = authenticationService.checkIfUserExistsInDB(email);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());

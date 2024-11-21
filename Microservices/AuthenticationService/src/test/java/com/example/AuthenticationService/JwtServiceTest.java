@@ -1,45 +1,68 @@
 package com.example.AuthenticationService;
 
+import com.example.AuthenticationService.exceptions.JwtServiceExceptions;
 import com.example.AuthenticationService.service.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-class JwtServiceTest {
+import javax.crypto.SecretKey;
+import java.util.Date;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+public class JwtServiceTest {
 
     private JwtService jwtService;
+    private SecretKey secretKey;
 
     @BeforeEach
     void setUp() {
-        String secret = "test-google-client-secret-test-google-client-secret"; // Ensure it's 256-bit
+        String secret = "my-very-secure-and-long-secret-key";
+        secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         jwtService = new JwtService(secret);
     }
 
     @Test
-    void testGenerateAndValidateToken() {
+    void testValidateToken_ValidToken() {
+        // Arrange: Create a valid token
         String email = "test@example.com";
-        long expirationTime = 3600000; // 1 hour
-
-        String token = jwtService.generateToken(email, expirationTime);
-        assertNotNull(token, "Generated token should not be null");
+        String token = Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
 
         Claims claims = jwtService.validateToken(token);
-        assertNotNull(claims, "Token claims should not be null");
-        assertEquals(email, claims.getSubject(), "Email should match the subject in the token");
+
+        assertNotNull(claims);
+        assertNotNull(claims.getSubject());
+        assert(claims.getSubject().equals(email));
     }
 
     @Test
-    void testExpiredTokenThrowsException() {
+    void testValidateToken_ExpiredToken() {
         String email = "test@example.com";
-        long expirationTime = -1000; // Expired
+        String token = Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date(System.currentTimeMillis() - 2 * 60 * 60 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() - 60 * 60 * 1000))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
 
-        String token = jwtService.generateToken(email, expirationTime);
+        assertThrows(JwtServiceExceptions.TokenExpiredException.class, () -> jwtService.validateToken(token));
+    }
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            jwtService.validateToken(token);
-        });
+    @Test
+    void testValidateToken_InvalidToken() {
+        // Arrange: Create a malformed/invalid token
+        String token = "invalid.token.string";
 
-        assertTrue(exception.getMessage().contains("Token has expired"));
+        assertThrows(JwtServiceExceptions.InvalidTokenException.class, () -> jwtService.validateToken(token));
     }
 }
