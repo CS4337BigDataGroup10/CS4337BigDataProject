@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController {
     private final UserService userService;
 
@@ -20,15 +20,15 @@ public class UserController {
     }
 
     // Endpoint to create a new user
-    @PostMapping
+    @PostMapping("/createuser")
     public ResponseEntity<?> createUser(@RequestBody CreateUserRequest request) {
-        UserEntity user = userService.createUser(request.getName(), request.getEmail());
+        UserEntity user = userService.createUser(request.getGivenName(), request.getFamilyName(), request.getEmail());
         return ResponseEntity.ok(user);
     }
     // Endpoint to update the name of an existing user
     @PostMapping("/{email}/update-name")
-    public ResponseEntity<?> updateUserName(@PathVariable String email, @RequestBody UpdateUserNameRequest request) {
-        boolean updated = userService.updateUserName(email, request.getName());
+    public ResponseEntity<?> updateUserName(@PathVariable String email, @RequestParam String givenName, @RequestParam String familyName) {
+        boolean updated = userService.updateUserName(email, givenName, familyName);
         if (updated) {
             return ResponseEntity.ok("User name updated successfully");
         } else {
@@ -46,8 +46,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserEntity> handleUserAuth(@RequestBody UserDTO userDTO) {
-        UserEntity userEntity = userService.handleUserLogin(userDTO);
+    public ResponseEntity<UserEntity> handleNewUserAuth(@RequestBody UserDTO userDTO) {
+        UserEntity userEntity = userService.handleNewUserLogin(userDTO);
         return ResponseEntity.ok(userEntity);
     }
 
@@ -64,6 +64,12 @@ public class UserController {
     public ResponseEntity<Boolean> isTourGuide(@PathVariable String email) {
         boolean isTourGuide = userService.isTourGuide(email);
         return ResponseEntity.ok(isTourGuide);
+    }
+
+    @GetMapping("/ping")
+    public String ping(){
+        String ping = "Hello";
+        return ping;
     }
 }
 
