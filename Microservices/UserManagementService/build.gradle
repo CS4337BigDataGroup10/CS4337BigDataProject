@@ -20,7 +20,7 @@ subprojects {
 
 	dependencies {
 		implementation 'org.springframework.boot:spring-boot-starter'
-		implementation 'mysql:mysql-connector-java:8.0.34'
+		implementation 'mysql:mysql-connector-java:8.0.32' // Replace with the latest version
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		implementation 'org.springframework.boot:spring-boot-starter-security'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
