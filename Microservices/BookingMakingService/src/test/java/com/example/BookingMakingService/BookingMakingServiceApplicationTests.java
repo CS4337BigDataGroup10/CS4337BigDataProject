@@ -3,9 +3,12 @@ package com.example.BookingMakingService;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.BookingMakingService.dto.BookingNotificationDTO;
 import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.repository.BookingRepository;
 import com.example.BookingMakingService.service.BookingService;
+import com.example.BookingMakingService.entity.Tour;
+import com.example.BookingMakingService.service.TourManagementClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

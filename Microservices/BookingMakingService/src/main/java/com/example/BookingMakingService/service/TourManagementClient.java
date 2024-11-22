@@ -46,7 +46,7 @@ public class TourManagementClient {
         //I am sending only the booking id and the tour id
         BookingNotificationDTO notificationDto = new BookingNotificationDTO();
         notificationDto.setBookingId(booking.getBookingId());
-        notificationDto.setTourId(booking.getTour().getTourId());
+        notificationDto.setTourId(booking.getTour());
 
         // Defining the URL to the tourmanagementservice endpoint
         String url = "http://tourmanagementservice/tour-bookings/add-booking";

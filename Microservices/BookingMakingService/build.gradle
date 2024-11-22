@@ -24,6 +24,7 @@ subprojects {
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 		implementation 'org.springframework:spring-webflux:5.2.7.RELEASE'
+		implementation 'mysql:mysql-connector-java:8.0.32'
 
 	}
 

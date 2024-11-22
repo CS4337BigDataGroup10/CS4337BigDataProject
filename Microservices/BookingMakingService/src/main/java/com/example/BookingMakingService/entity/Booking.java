@@ -10,32 +10,43 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int bookingId;
 
-    @ManyToOne
-    @JoinColumn(name = "emailId", nullable = false)
-    private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "tourId", nullable = false)
-    private Tour tour;
+    @Column(name = "emailId", nullable = false)
+    private String emailId;
 
-    @Column(nullable = false)
-    private int size; // Number of participants in this booking
 
-    // Getters and Setters
-    public int getBookingId() { return bookingId; }
-    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
+    @Column(name = "tourId", nullable = false)
+    private int tour;
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public Booking() {}
 
-    public int getSize() { return size; }
-    public void setSize(int size) { this.size = size; }
+    public Booking(int bookingId, String emailId, int tour){
+        this.bookingId = bookingId;
+        this.emailId = emailId;
+        this.tour = tour;
+    }
 
-    public Tour getTour() {
+    public int getBookingId() {
+        return bookingId;
+    }
+
+    public int getTour() {
         return tour;
     }
 
-    public void setTour(Tour tour) {
+    public String getEmailId() {
+        return emailId;
+    }
+
+    public void setBookingId(int bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public void setEmailId(String emailId) {
+        this.emailId = emailId;
+    }
+
+    public void setTour(int tour) {
         this.tour = tour;
     }
 }
