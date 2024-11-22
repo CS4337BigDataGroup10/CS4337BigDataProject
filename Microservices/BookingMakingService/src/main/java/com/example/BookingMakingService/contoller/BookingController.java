@@ -36,7 +36,7 @@ public class BookingController {
 
         // Step 2: Check if the requested tour is available
         boolean tourAvailable = availableTours.stream()
-                .anyMatch(tour -> tour.getTourId() == booking.getTour().getTourId());
+                .anyMatch(tour -> tour.getTourId() == booking.getTourId());
                 //this is checking if the tour we are trying to book into is available and there. If it is not available, it will return a bad request
         if (!tourAvailable) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
