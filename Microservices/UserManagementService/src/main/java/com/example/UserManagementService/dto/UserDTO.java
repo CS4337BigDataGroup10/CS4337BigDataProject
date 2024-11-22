@@ -2,12 +2,19 @@ package com.example.UserManagementService.dto;
 
 public class UserDTO {
     private String email;
-    private String name;
+    private String givenName;
+    private String familyName;
+    private String profilePicture;
     private boolean isTourGuide;
 
-    public UserDTO(String email, String name, boolean isTourGuide) {
+    // Default constructor
+    public UserDTO() {}
+
+    public UserDTO(String email, String givenName, String familyName, String profilePicture, Boolean isTourGuide) {
         this.email = email;
-        this.name = name;
+        this.givenName = givenName;
+        this.familyName = familyName;
+        this.profilePicture = profilePicture;
         this.isTourGuide = isTourGuide;
     }
 
@@ -15,23 +22,53 @@ public class UserDTO {
         return email;
     }
 
-    public String getName() {
-        return name;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public void setTourGuide(boolean tourGuide) {
+        isTourGuide = tourGuide;
     }
 
     public boolean isTourGuide() {
         return isTourGuide;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setTourGuide(boolean isTourGuide) {
-        this.isTourGuide = isTourGuide;
+    // Optional: toString method
+    @Override
+    public String toString() {
+        return "UserDTO{" +
+                "email='" + email +
+        ", givenName='" + givenName +
+        ", familyName='" + familyName +
+        ", profilePicture='" + profilePicture +
+        ", isTourGuide='" + isTourGuide() +
+        '}';
     }
 }
+

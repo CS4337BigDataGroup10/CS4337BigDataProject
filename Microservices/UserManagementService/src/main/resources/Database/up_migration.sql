@@ -1,6 +1,7 @@
-CREATE TABLE users (
+CREATE TABLE usermanagementdb (
                        email VARCHAR(255) PRIMARY KEY,
-                       name VARCHAR(255) NOT NULL,
+                       givenName VARCHAR(255) NOT NULL,
+                       familyName VARCHAR(255) NOT NULL,
                        is_tour_guide BOOLEAN NOT NULL DEFAULT FALSE
 );
 
