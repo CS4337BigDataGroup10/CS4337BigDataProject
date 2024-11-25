@@ -1,25 +1,43 @@
 package com.example.UserManagementService.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name="usermanagementdb")
 public class UserEntity {
 
-    private String name;
+    @Id
+    @Column(unique = true, nullable = false)
     private String email;
+    @Column(name="given_name")
+    private String givenName;
+    @Column(name="family_name")
+    private String familyName;
+    @Column(name="is_tour_guide")
     private boolean isTourGuide = false; // defaults to false, we can alter in database
 
     // Default constructor
     public UserEntity() {}
 
     // Constructor with fields
-    public UserEntity( String name, String email, boolean isTourGuide) {
+    public UserEntity(String email, String givenName, String familyName, boolean isTourGuide) {
 
-        this.name = name;
+        this.givenName = givenName;
+        this.familyName = familyName;
         this.email = email;
         this.isTourGuide = isTourGuide;
     }
 
 
-    public String getName() {
-        return name;
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public String getFamilyName() {
+        return familyName;
     }
 
     public String getEmail() {
@@ -32,8 +50,8 @@ public class UserEntity {
 
 
 
-    public void setName(String name) {
-        this.name = name;
+    public void setGivenName(String name) {
+        this.givenName = name;
     }
 
     public void setEmail(String email) {
@@ -43,6 +61,10 @@ public class UserEntity {
 
     public void setIsTourGuide(boolean isTourGuide) {
         this.isTourGuide = isTourGuide;
+    }
+
+    public void setFamilyName(String newFamilyName) {
+        this.familyName = newFamilyName;
     }
 
 
