@@ -1,0 +1,35 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: AuthServiceDB
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: AuthServiceDB
+    volumes:
+      - './Database:/docker-entrypoint-initdb.d'
+    networks:
+      - net
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 5s
+      retries: 5
+      timeout: 2s
+
+  java-app:
+    image: project
+    container_name: AuthService
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - net
+    ports:
+      - "8081:8081"
+    env_file:
+      - './.env'
+
+networks:
+  net:
+    driver: bridge

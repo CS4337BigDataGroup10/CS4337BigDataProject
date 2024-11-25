@@ -1,9 +1,7 @@
 CREATE TABLE User
 (
-    EmailID  VARCHAR(255) PRIMARY KEY,
-    Name     VARCHAR(255) NOT NULL,
-    Password VARCHAR(60)  NOT NULL,
-    UserType ENUM('user', 'tour guide', 'admin') NOT NULL
+    id  VARCHAR(255) PRIMARY KEY,
+    email     VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE TourBookings
