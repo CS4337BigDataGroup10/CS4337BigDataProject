@@ -1,6 +1,7 @@
 package com.example.BookingMakingService.entity;
 
 import jakarta.persistence.*;
+//merge conflict
 
 @Entity
 @Table(name = "Booking")
