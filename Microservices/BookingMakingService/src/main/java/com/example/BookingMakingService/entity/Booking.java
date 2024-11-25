@@ -1,6 +1,7 @@
 package com.example.BookingMakingService.entity;
 
 import jakarta.persistence.*;
+//merge conflict
 
 @Entity
 @Table(name = "Booking")
@@ -12,26 +13,21 @@ public class Booking {
 
     @ManyToOne
     @JoinColumn(name = "emailId", nullable = false)
-    private User user;
+    private String emailId; // user can just be a String emailid
 
     @ManyToOne
     @JoinColumn(name = "tourId", nullable = false)
-    private Tour tour;
+    private int tourId; // tour can just be an int tourID
 
-    @Column(nullable = false)
-    private int size; // Number of participants in this booking
 
     // Getters and Setters
     public int getBookingId() { return bookingId; }
     public void setBookingId(int bookingId) { this.bookingId = bookingId; }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public String getEmailId() { return emailId; }
+    public void setEmailId(String emailId) { this.emailId = emailId; }
 
-    public int getSize() { return size; }
-    public void setSize(int size) { this.size = size; }
-
-    public Tour getTour() {
-        return tour;
+    public int getTourId() {
+        return tourId;
     }
 }
