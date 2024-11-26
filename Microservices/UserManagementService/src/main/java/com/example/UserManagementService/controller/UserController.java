@@ -71,5 +71,10 @@ public class UserController {
         String ping = "Hello";
         return ping;
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserEntity> updateUser(@PathVariable String id, @RequestBody UserEntity updatedUser) {
+        return ResponseEntity.ok(userService.updateUser(id, updatedUser));
+    }
 }
 

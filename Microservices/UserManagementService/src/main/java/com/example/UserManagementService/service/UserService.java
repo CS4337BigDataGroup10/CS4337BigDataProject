@@ -75,6 +75,15 @@ public class UserService {
         }
     }
 
+    public UserEntity updateUser(String id, UserEntity updatedUser) {
+        UserEntity existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+        existingUser.setFamilyName(updatedUser.getFamilyName());
+        existingUser.setGivenName(updatedUser.getGivenName());
+        return userRepository.save(existingUser);
+    }
+
+
     public boolean deleteUser(String email) {
         logger.debug("deleteUser called with email: {}", email);
 

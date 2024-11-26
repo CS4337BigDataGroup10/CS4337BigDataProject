@@ -23,4 +23,21 @@ public class BookingService {
         bookingRepository.save(booking);
         return booking;
     }
+    // New: Update a booking
+    public Booking updateBooking(int id, Booking updatedBooking) {
+        Booking existingBooking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+        // Only update fields explicitly passed
+        existingBooking.setBookingId(updatedBooking.getBookingId()); // Example field
+        existingBooking.setEmailId(updatedBooking.getEmailId()); // Example field
+        return bookingRepository.save(existingBooking);
+    }
+
+    // New: Delete a booking
+    public void deleteBooking(int id) {
+        if (!bookingRepository.existsById(id)) {
+            throw new RuntimeException("Booking not found with ID: " + id);
+        }
+        bookingRepository.deleteById(id);
+    }
 }

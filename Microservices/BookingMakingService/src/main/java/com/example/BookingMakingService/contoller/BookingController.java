@@ -6,10 +6,8 @@ import com.example.BookingMakingService.service.BookingService;
 import com.example.BookingMakingService.service.TourManagementClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -48,6 +46,17 @@ public class BookingController {
         Booking newBooking = bookingService.createBooking(booking);
         tourManagementClient.notifyTourManagement(newBooking); //this notifys tour management service that the booking has been created after going through the checks.
         return ResponseEntity.ok("Booking created successfully and notification sent.");
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Booking> updateBooking(@PathVariable int id, @RequestBody Booking updatedBooking) {
+        return ResponseEntity.ok(bookingService.updateBooking(id, updatedBooking));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBooking(@PathVariable int id) {
+        bookingService.deleteBooking(id);
+        return ResponseEntity.noContent().build();
     }
 
 }
