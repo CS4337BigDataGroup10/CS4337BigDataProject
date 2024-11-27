@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.1.0' apply false
-	id 'io.spring.dependency-management' version '1.1.0' apply false
+	id 'io.spring.dependency-management' version '1.1.0' apply true
 }
 
 allprojects {
@@ -19,11 +19,15 @@ subprojects {
 	}
 
 	dependencies {
+
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
 		implementation 'org.springframework.boot:spring-boot-starter'
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+		implementation 'mysql:mysql-connector-java:8.0.32'
+
 	}
 	tasks.bootJar {
 		mainClassName = 'com.example.TourManagementService.TourManagementServiceApplication'

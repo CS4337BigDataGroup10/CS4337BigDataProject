@@ -1,11 +1,11 @@
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.1.0' apply false
-	id 'io.spring.dependency-management' version '1.1.0' apply false
+	id 'io.spring.dependency-management' version '1.1.0' apply true
 }
 
 allprojects {
-	group = 'com.example'
+	group = 'com.example/Microservices'
 	version = '1.0.0-SNAPSHOT'
 
 	repositories {
@@ -19,27 +19,27 @@ subprojects {
 	apply plugin: 'java'
 
 	dependencies {
+		// Spring Cloud Eureka Client
+
+		// Spring Boot Starters
 		implementation 'org.springframework.boot:spring-boot-starter'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+		// MySQL Database
 		implementation 'mysql:mysql-connector-java:8.0.32'
+
+		// Testing
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-		implementation 'mysql:mysql-connector-java:8.0.32' // Replace with the latest version
 
-
-		implementation 'mysql:mysql-connector-java:8.0.32' // Replace with the latest version
-
-		// JSON Web Token dependencies
+		// JSON Web Token (JWT) Dependencies
 		implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 		runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 		runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-		// Test dependencies
-//		testImplementation 'org.mockito:mockito-core:5.4.0'
-//		testImplementation 'org.mockito:mockito-inline:5.4.0'
+		// Byte Buddy for Testing
 		testImplementation 'net.bytebuddy:byte-buddy:1.14.4'
 	}
-
 
 	java {
 		sourceCompatibility = JavaVersion.VERSION_17
@@ -50,5 +50,12 @@ subprojects {
 		useJUnitPlatform()
 		// JVM arguments to enable Byte Buddy experimental features for unsupported Java versions
 		jvmArgs '-Dnet.bytebuddy.experimental=true'
+	}
+}
+
+dependencyManagement {
+	imports {
+		// Use the Spring Cloud BOM to manage versions of Spring Cloud dependencies
+		mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2022.0.4' // Use the latest version compatible with Spring Boot 3.1.0
 	}
 }
