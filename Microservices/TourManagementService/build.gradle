@@ -28,11 +28,12 @@ subprojects {
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 		implementation 'mysql:mysql-connector-java:8.0.32'
 
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+		testImplementation 'com.h2database:h2:2.1.214'
 	}
 	tasks.bootJar {
 		mainClassName = 'com.example.TourManagementService.TourManagementServiceApplication'
 	}
-
 	test {
 		useJUnitPlatform()
 	}
