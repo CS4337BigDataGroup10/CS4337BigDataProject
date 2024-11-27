@@ -19,4 +19,12 @@ public class BookingNotificationDTO {
     public int getTourId() {
         return tourId;
     }
+
+    public void setTourId(int tourId) {
+        this.tourId = tourId;
+    }
+
+    public void setBookingId(int i) {
+        this.bookingId = i;
+    }
 }
