@@ -1,12 +1,14 @@
-rootProject.name = 'CS4337BigDataProject'
+rootProject.name = 'Microservices'
 
 include 'AuthenticationService'
 include 'BookingMakingService'
 include 'TourManagementService'
 include 'UserManagementService'
+include 'EurekaServer'
 
 // Specify the correct paths for each microservice
 project(':AuthenticationService').projectDir = file('Microservices/AuthenticationService')
 project(':BookingMakingService').projectDir = file('Microservices/BookingMakingService')
 project(':TourManagementService').projectDir = file('Microservices/TourManagementService')
 project(':UserManagementService').projectDir = file('Microservices/UserManagementService')
+project(':EurekaServer').projectDir = file('Microservices/EurekaServer')

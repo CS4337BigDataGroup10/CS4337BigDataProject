@@ -13,7 +13,7 @@ public class Booking {
     @ManyToOne
     @JoinColumn(name = "emailId", nullable = false)
     private User user;
-  
+
     @ManyToOne
     @JoinColumn(name = "tourId", nullable = false)
     private Tour tour;
