@@ -4,6 +4,8 @@ import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.repository.BookingRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BookingService {
@@ -16,11 +18,31 @@ public class BookingService {
     public String getAllBookings() {
         return bookingRepository.findAll().toString();
     }
+
+    // New method to get bookings by emailId
+    public String getBookingsByEmailId(String emailId) {
+        return bookingRepository.findByEmailId(emailId).toString();
+    }
     //this is saving the booking to the db
     //.save() is a JpaRepository method that is used to save the booking to the database.
     @Transactional
     public Booking createBooking(Booking booking) {
         bookingRepository.save(booking);
         return booking;
+    }
+
+    public boolean cancelBooking(int bookingId) {
+        Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
+
+        if (optionalBooking.isPresent()) {
+            Booking booking = optionalBooking.get();
+
+            if (!booking.isCancelled()) {  // Proceed only if the booking is not already cancelled
+                booking.setCancelled(true);
+                bookingRepository.save(booking);
+                return true;
+            }
+        }
+        return false;
     }
 }

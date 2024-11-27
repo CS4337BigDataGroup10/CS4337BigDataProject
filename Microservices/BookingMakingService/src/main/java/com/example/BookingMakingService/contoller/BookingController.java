@@ -6,10 +6,8 @@ import com.example.BookingMakingService.service.BookingService;
 import com.example.BookingMakingService.service.TourManagementClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -27,6 +25,16 @@ public class BookingController {
     public ResponseEntity<String> getAllBookings() {
         String currentBookings = bookingService.getAllBookings();
         return ResponseEntity.ok(currentBookings);
+    }
+
+    // New endpoint to get bookings by emailId
+    @GetMapping("/email/{emailId}")
+    public ResponseEntity<String> getBookingsByEmailId(@PathVariable String emailId) {
+        String userBookings = bookingService.getBookingsByEmailId(emailId).toString();
+        if (userBookings.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(userBookings);
     }
 
     @PostMapping
@@ -49,5 +57,21 @@ public class BookingController {
         tourManagementClient.notifyTourManagement(newBooking); //this notifys tour management service that the booking has been created after going through the checks.
         return ResponseEntity.ok("Booking created successfully and notification sent.");
     }
+
+    // New endpoint to cancel a booking
+    @PutMapping("/bookings/{bookingId}/cancel")
+    public ResponseEntity<String> cancelBooking(@PathVariable Booking booking) {
+        boolean isCancelled = bookingService.cancelBooking(booking.getBookingId());
+
+        if (isCancelled) {
+            tourManagementClient.notifyCancellation(booking);
+            return ResponseEntity.ok("Booking with ID " + booking.getBookingId() + " has been cancelled.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Booking with ID " + booking.getBookingId() + " is already cancelled or does not exist.");
+        }
+    }
+
+
 
 }

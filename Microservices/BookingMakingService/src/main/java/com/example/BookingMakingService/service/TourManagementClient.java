@@ -9,16 +9,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/tour-management")
+@Service
 public class TourManagementClient {
 
     private final RestTemplate restTemplate;
@@ -39,27 +35,42 @@ public class TourManagementClient {
         return response.getBody();
     }
 
-    @PostMapping("/notify")
-    public ResponseEntity<String> notifyTourManagement(@RequestBody Booking booking) {
-        // Prepare the BookingNotificationDto
-        //this is the notification that is sent to the tour management service
-        //I am sending only the booking id and the tour id
+    // Notify the tour management service about a new booking
+    public ResponseEntity<String> notifyTourManagement(Booking booking) {
+        BookingNotificationDTO notificationDto = createNotificationDTO(booking);
+        return sendNotification(notificationDto, false); // false for booking addition
+    }
+
+    // Notify the tour management service about a booking cancellation
+    public ResponseEntity<String> notifyCancellation(Booking booking) {
+        BookingNotificationDTO notificationDto = createNotificationDTO(booking);
+        return sendNotification(notificationDto, true); // true for booking removal
+    }
+
+    // Helper method to create a BookingNotificationDTO from a Booking
+    private BookingNotificationDTO createNotificationDTO(Booking booking) {
         BookingNotificationDTO notificationDto = new BookingNotificationDTO();
         notificationDto.setBookingId(booking.getBookingId());
         notificationDto.setTourId(booking.getTourId());
+        return notificationDto;
+    }
 
-        // Defining the URL to the tourmanagementservice endpoint
-        String url = "http://tourmanagementservice/tour-bookings/add-booking";
+    // Send notification for either booking or cancellation
+    private ResponseEntity<String> sendNotification(BookingNotificationDTO notificationDto, boolean isCancellation) {
+        String url = isCancellation
+                ? "http://tour-management-service/api/tours/" + notificationDto.getTourId() + "/removeBooking"
+                : "http://tour-management-service/api/tours/" + notificationDto.getTourId() + "/addBooking";
 
-        // Creating the HTTP request entity
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
         HttpEntity<BookingNotificationDTO> request = new HttpEntity<>(notificationDto, headers);
 
-        // Sending POST request using RestTemplate
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-
-        return ResponseEntity.ok("Notification sent to tour management service. Response: " + response.getBody());
+        // Send the request
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
+            return response; // Return the response from the TourManagementService
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error communicating with Tour Management Service: " + e.getMessage());
+        }
     }
 }
-
