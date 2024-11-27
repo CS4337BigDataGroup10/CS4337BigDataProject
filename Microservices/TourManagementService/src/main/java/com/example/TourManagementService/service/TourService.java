@@ -3,6 +3,7 @@ package com.example.TourManagementService.service;
 import com.example.TourManagementService.dto.BookingNotificationDTO;
 import com.example.TourManagementService.entity.Tour;
 import com.example.TourManagementService.entity.TourBookings;
+import com.example.TourManagementService.exceptions.*;
 import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.repository.TourRepository;
 import org.springframework.http.ResponseEntity;
@@ -34,21 +35,29 @@ public class TourService {
     // Method to fetch a tour by ID
     public Tour getTourById(int tourId) {
         return tourRepository.findById(tourId)
-                .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
+                .orElseThrow(() -> new TourNotFoundException("Tour not found with ID: " + tourId));
     }
 
     public void selfAssignToTour(int tourId, String emailId) {
         String userManagementServiceUrl = "http://USER-MANAGEMENT-SERVICE/users/" + emailId + "/isTourGuide";
         Boolean isTourGuide = restTemplate.getForObject(userManagementServiceUrl, Boolean.class);
 
+        System.out.println("Attempting to assign Tour Guide: " + emailId + " to Tour ID: " + tourId);
+
         if (Boolean.FALSE.equals(isTourGuide)) {
+            System.err.println("isTourGuide check failed for emailId: " + emailId);
             throw new IllegalArgumentException("Only tour guides can assign themselves to a tour.");
+        }
+        if (emailId == null || emailId.isBlank()) {
+            System.err.println("Invalid emailId: " + emailId);
+            throw new IllegalArgumentException("Invalid emailId: " + emailId);
         }
 
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new IllegalArgumentException("Tour not found with ID: " + tourId));
 
         if (tour.getEmailId() != null) {
+            System.err.println("Tour already has a guide assigned. Tour ID: " + tourId + ", Guide: " + tour.getEmailId());
             throw new IllegalArgumentException("Tour already has a tour guide assigned.");
         }
 
@@ -87,16 +96,24 @@ public class TourService {
 
         // Check if the new count exceeds the maximum capacity
         if (newParticipantCount > 20) {
-            throw new IllegalArgumentException("Cannot add booking, tour capacity exceeded.");
+            throw new CapacityExceededException("Cannot add booking, tour capacity exceeded.");
         }
 
         tour.setParticipantCount(newParticipantCount);
         tourRepository.save(tour);
     }
     //method to remove a booking from a tour
+    @Transactional
     public void removeBooking(int tourId, int bookingId) {
         Tour tour = getTourById(tourId);
-        tourBookingsRepository.deleteByTourIdAndBookingId(tourId, bookingId);
+
+        if (tourBookingsRepository.existsById(bookingId)) {
+            tourBookingsRepository.deleteByTourIdAndBookingId(tourId, bookingId);
+            tour.setParticipantCount(tour.getParticipantCount() - 1);
+            tourRepository.save(tour);
+        } else {
+            throw new IllegalArgumentException("Booking not found with ID: " + bookingId);
+        }
     }
     //method to add a booking to a tour
     @PostMapping("/{tourId}/addBooking")
@@ -111,9 +128,13 @@ public class TourService {
 
     public void handleNewBooking(BookingNotificationDTO bookingNotificationDto) {
         TourBookings tourBookings = new TourBookings();
-        tourBookings.getTourId(bookingNotificationDto.getTourId());
         tourBookings.setBookingId(bookingNotificationDto.getBookingId());
         tourBookings.setTourId(bookingNotificationDto.getTourId());
+
+        if (tourBookingsRepository.existsByTourIdAndBookingId(bookingNotificationDto.getTourId(), bookingNotificationDto.getBookingId())) {
+            throw new IllegalArgumentException("Booking already exists for the given tour.");
+        }
+
         tourBookingsRepository.save(tourBookings);
     }
     public Tour createTour(Tour tour) {

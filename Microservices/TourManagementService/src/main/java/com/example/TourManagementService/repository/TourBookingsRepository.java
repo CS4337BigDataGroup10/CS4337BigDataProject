@@ -15,5 +15,7 @@ public interface TourBookingsRepository extends JpaRepository<TourBookings, Inte
 
     @Modifying
     @Query("UPDATE TourBookings tb SET tb.tourId = ?1 WHERE tb.bookingId = ?2")
-    void updateTourBookingsByBookingIdAnd(int tourId, int bookingId);
+    void updateTourBookingsByBookingIdAndBook(int tourId, int bookingId);
+
+    boolean existsByTourIdAndBookingId(int tourId, int bookingId);
 }
