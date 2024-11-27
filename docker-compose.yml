@@ -39,6 +39,8 @@ services:
   auth-service:
     image: auth-service
     container_name: AuthService
+    env_file:
+      - .env
     depends_on:
       auth-db:
         condition: service_healthy
