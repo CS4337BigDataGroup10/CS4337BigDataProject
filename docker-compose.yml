@@ -161,7 +161,7 @@ services:
     environment:
       SPRING_APPLICATION_NAME: user-management-service
       SERVER_PORT: 8084
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/  # Updated Eureka URL
 
 networks:
   net:
