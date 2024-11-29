@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class) // Enables Mockito
@@ -25,6 +26,7 @@ class BookingMakingServiceApplicationTests {
 
     @InjectMocks
     private BookingService bookingService;
+
 
     @Test
     void testGetAllBookings() {
@@ -48,6 +50,61 @@ class BookingMakingServiceApplicationTests {
         assertEquals(1, result.getBookingId());
 
         verify(bookingRepository, times(1)).save(booking);
+    }
+
+    @Test
+    void testCancelBooking(){
+        Booking booking = new Booking();
+        booking.setBookingId(1);
+        booking.setEmailId("test@example.com");
+        booking.setCancelled(false);
+
+        when(bookingRepository.findById(1)).thenReturn(Optional.of(booking));
+
+        boolean result = bookingService.cancelBooking(1);
+
+        assertTrue(result);
+        assertTrue(booking.isCancelled());
+        verify(bookingRepository, times(1)).save(booking);
+    }
+
+    @Test
+    void testCancelBookingAlreadyCancelled() {
+        Booking booking = new Booking();
+        booking.setBookingId(1);
+        booking.setEmailId("test@example.com");
+        booking.setCancelled(true);
+        when(bookingRepository.findById(1)).thenReturn(Optional.of(booking));
+
+        boolean result = bookingService.cancelBooking(1);
+
+        assertFalse(result);
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    void testCancelBookingNotFound() {
+        when(bookingRepository.findById(1)).thenReturn(Optional.empty());
+
+        boolean result = bookingService.cancelBooking(1);
+
+        assertFalse(result); // No booking found
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    void testGetBookings(){
+        Booking booking = new Booking();
+        booking.setBookingId(1);
+        booking.setEmailId("test@example.com");
+        booking.setCancelled(true);
+        when(bookingRepository.findByEmailId("test@example.com")).thenReturn(List.of(booking));
+
+        String bookings = bookingService.getBookingsByEmailId("test@example.com");
+
+        assertNotNull(bookings);
+        verify(bookingRepository, times(1)).findByEmailId("test@example.com");
+
     }
 }
 
