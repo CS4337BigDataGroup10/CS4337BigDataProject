@@ -39,6 +39,9 @@ public class TourService {
     }
 
     public void selfAssignToTour(int tourId, String emailId) {
+        if (emailId == null || emailId.isBlank()) {
+            throw new IllegalArgumentException("Invalid emailId: " + emailId);
+        }
         String userManagementServiceUrl = "http://USER-MANAGEMENT-SERVICE/users/" + emailId + "/isTourGuide";
         Boolean isTourGuide = restTemplate.getForObject(userManagementServiceUrl, Boolean.class);
 
@@ -47,10 +50,6 @@ public class TourService {
         if (Boolean.FALSE.equals(isTourGuide)) {
             System.err.println("isTourGuide check failed for emailId: " + emailId);
             throw new IllegalArgumentException("Only tour guides can assign themselves to a tour.");
-        }
-        if (emailId == null || emailId.isBlank()) {
-            System.err.println("Invalid emailId: " + emailId);
-            throw new IllegalArgumentException("Invalid emailId: " + emailId);
         }
 
         Tour tour = tourRepository.findById(tourId)

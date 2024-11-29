@@ -1,199 +1,263 @@
-//package com.example.TourManagementService;
-//
-//import com.example.TourManagementService.dto.BookingNotificationDTO;
-//import com.example.TourManagementService.entity.Tour;
-//import com.example.TourManagementService.entity.TourBookings;
-//import com.example.TourManagementService.exceptions.CapacityExceededException;
-//import com.example.TourManagementService.repository.TourRepository;
-//import com.example.TourManagementService.service.TourScheduler;
-//import com.example.TourManagementService.service.TourService;
-//import com.example.TourManagementService.repository.TourBookingsRepository;
-//import org.junit.jupiter.api.Assertions;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.transaction.annotation.Transactional;
-//
-//import java.time.LocalDateTime;
-//
-//import static org.junit.jupiter.api.Assertions.assertThrows;
-//
-//@SpringBootTest
-//@Transactional
-//public class TourServiceTest {
-//
-//    @Autowired
-//    private TourService tourService;
-//
-//    @Autowired
-//    private TourRepository tourRepository;
-//
-//    @Autowired
-//    private TourBookingsRepository TourBookingsRepository;
-//
-//    @Test
-//    public void testGetTourById_TourExists() {
-//        // Arrange
-//        Tour tour = new Tour();
-//        tour.setEmailId("test@example.com");
-//        tour.setTourDateTime("2024-01-01T09:00:00");
-//        tour.setParticipantCount(0);
-//        tour = tourRepository.save(tour);
-//
-//        // Act
-//        Tour fetchedTour = tourService.getTourById(tour.getTourId());
-//
-//        // Assert
-//        Assertions.assertNotNull(fetchedTour);
-//        Assertions.assertEquals("test@example.com", fetchedTour.getEmailId());
-//    }
-//
-//    @Test
-//    void testUpdateParticipantCount_CapacityExceeded() {
-//        Tour tour = new Tour();
-//        tour.setEmailId("guide@example.com");
-//        tour.setTourDateTime(LocalDateTime.now().toString());
-//        tour.setParticipantCount(19); // Initial participant count
-//        tour.setMaxCapacity(20);
-//
-//        // Save the tour to the repository
-//        tour = tourRepository.save(tour);
-//
-//        // Expect CapacityExceededException when exceeding capacity
-//        Tour finalTour = tour;
-//        assertThrows(CapacityExceededException.class, () -> {
-//            tourService.updateParticipantCount(finalTour.getTourId(), 2); // Adding 2 exceeds capacity
-//        });
-//    }
-//
-//    @Test
-//    void testAddBooking_Success() {
-//        Tour tour = new Tour();
-//        tour.setEmailId("guide@example.com");
-//        tour.setTourDateTime(LocalDateTime.now().toString());
-//        tour.setParticipantCount(18);
-//        tour.setMaxCapacity(20);
-//        tour = tourRepository.save(tour);
-//
-//        tourService.updateParticipantCount(tour.getTourId(), 2);
-//
-//        Tour updatedTour = tourRepository.findById(tour.getTourId()).orElseThrow();
-//        Assertions.assertEquals(20, updatedTour.getParticipantCount());
-//    }
-//
-//    @Test
-//    void testRemoveBooking() {
-//        Tour tour = new Tour();
-//        tour.setEmailId("guide@example.com");
-//        tour.setTourDateTime(LocalDateTime.now().toString());
-//        tour.setParticipantCount(5);
-//        tour.setMaxCapacity(20);
-//        tour = tourRepository.save(tour);
-//
-//        TourBookings booking = new TourBookings();
-//        booking.setTourId(tour.getTourId());
-//        booking.setBookingId(1);
-//        TourBookingsRepository.save(booking);
-//
-//        //Remove the booking
-//        tourService.removeBooking(tour.getTourId(), 1);
-//
-//        //Verify the participant count and that the booking is removed
-//        Tour updatedTour = tourRepository.findById(tour.getTourId()).orElseThrow();
-//        Assertions.assertEquals(4, updatedTour.getParticipantCount(), "Participant count should decrease by 1");
-//        Assertions.assertFalse(TourBookingsRepository.existsById(1), "Booking should be removed from the repository");
-//    }
-//
-//    @Test
-//    void testRemoveBooking_NotFound() {
-//        Tour tour = new Tour();
-//        tour.setEmailId("guide@example.com");
-//        tour.setTourDateTime(LocalDateTime.now().toString());
-//        tour.setParticipantCount(5);
-//        tour.setMaxCapacity(20);
-//        tour = tourRepository.save(tour);
-//
-//        Tour finalTour = tour;
-//        assertThrows(IllegalArgumentException.class, () -> {
-//            tourService.removeBooking(finalTour.getTourId(), 6969);
-//        });
-//    }
-//    @Test
-//    void testSaveTourBooking() {
-//        TourBookings booking = new TourBookings();
-//        booking.setTourId(1);
-//        booking.setBookingId(1);
-//        TourBookings savedBooking = TourBookingsRepository.save(booking);
-//        Assertions.assertNotNull(savedBooking.getId(), "Saved booking ID should not be null.");
-//    }
-//
-//    @Test
-//    void testHandleNewBooking() {
-//        Tour tour = new Tour();
-//        tour.setEmailId("guide@example.com");
-//        tour.setTourDateTime(LocalDateTime.now().toString());
-//        tour.setParticipantCount(0);
-//        tour.setMaxCapacity(20);
-//        tour = tourRepository.save(tour);
-//
-//        BookingNotificationDTO bookingNotificationDto = new BookingNotificationDTO();
-//        bookingNotificationDto.setTourId(tour.getTourId());
-//        bookingNotificationDto.setBookingId(1);
-//
-//        System.out.println("BookingNotificationDTO: " + bookingNotificationDto);
-//
-//        tourService.handleNewBooking(bookingNotificationDto);
-//
-//        System.out.println("All bookings after save: " + TourBookingsRepository.findAll());
-//
-//        Tour finalTour = tour;
-//        Assertions.assertTrue(
-//                TourBookingsRepository.findAll().stream()
-//                        .anyMatch(booking -> booking.getTourId() == finalTour.getTourId() && booking.getBookingId() == 1),
-//                "Booking should have been saved in the repository."
-//        );
-//    }
-//
-//    @Test
-//    void testPreventDuplicateBookings() {
-//        Tour tour = new Tour();
-//        tour.setEmailId("guide@example.com");
-//        tour.setTourDateTime(LocalDateTime.now().toString());
-//        tour.setParticipantCount(0);
-//        tour.setMaxCapacity(20);
-//        tour = tourRepository.save(tour);
-//
-//        BookingNotificationDTO bookingNotificationDto1 = new BookingNotificationDTO();
-//        bookingNotificationDto1.setTourId(tour.getTourId());
-//        bookingNotificationDto1.setBookingId(1);
-//
-//        tourService.handleNewBooking(bookingNotificationDto1);
-//
-//        Tour finalTour1 = tour;
-//        Assertions.assertTrue(
-//                TourBookingsRepository.findAll().stream()
-//                        .anyMatch(booking -> booking.getTourId() == finalTour1.getTourId() && booking.getBookingId() == 1),
-//                "Booking should have been saved in the repository."
-//        );
-//
-//        // trying to insert a duplicate booking
-//        BookingNotificationDTO bookingNotificationDto2 = new BookingNotificationDTO();
-//        bookingNotificationDto2.setTourId(tour.getTourId());
-//        bookingNotificationDto2.setBookingId(1);
-//
-//        // check that an IllegalArgumentException is thrown due to the duplicate booking
-//        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-//            tourService.handleNewBooking(bookingNotificationDto2); // Should throw exception due to duplicate
-//        });
-//
-//        Assertions.assertTrue(exception.getMessage().contains("Booking already exists for the given tour"));
-//
-//        // Verify that no new booking was added
-//        Tour finalTour = tour;
-//        long bookingCount = TourBookingsRepository.findAll().stream()
-//                .filter(booking -> booking.getTourId() == finalTour.getTourId() && booking.getBookingId() == 1)
-//                .count();
-//        Assertions.assertEquals(1, bookingCount, "Duplicate booking should not be added.");
-//    }
-//
-//}
+package com.example.TourManagementService;
+
+import com.example.TourManagementService.dto.BookingNotificationDTO;
+import com.example.TourManagementService.entity.Tour;
+import com.example.TourManagementService.entity.TourBookings;
+import com.example.TourManagementService.exceptions.CapacityExceededException;
+import com.example.TourManagementService.repository.TourRepository;
+import com.example.TourManagementService.repository.TourBookingsRepository;
+import com.example.TourManagementService.service.TourService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class TourServiceTest {
+
+    @Mock
+    private RestTemplate restTemplate;
+
+    @Mock
+    private TourRepository tourRepository;
+
+    @Mock
+    private TourBookingsRepository tourBookingsRepository;
+
+    @InjectMocks
+    private TourService tourService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testGetTourById_TourExists() {
+        Tour tour = new Tour();
+        tour.setTourId(1);
+        tour.setEmailId("test@example.com");
+        when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+
+        Tour fetchedTour = tourService.getTourById(1);
+
+        assertNotNull(fetchedTour);
+        assertEquals("test@example.com", fetchedTour.getEmailId());
+        verify(tourRepository, times(1)).findById(1);
+    }
+
+    @Test
+    void testUpdateParticipantCount_CapacityExceeded() {
+        Tour tour = new Tour();
+        tour.setTourId(1);
+        tour.setParticipantCount(19);
+        tour.setMaxCapacity(20);
+        when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+
+        CapacityExceededException exception = assertThrows(CapacityExceededException.class, () -> {
+            tourService.updateParticipantCount(1, 2);
+        });
+
+        assertEquals("Cannot add booking, tour capacity exceeded.", exception.getMessage());
+        verify(tourRepository, times(1)).findById(1);
+    }
+
+    @Test
+    void testAddBooking_Success() {
+        Tour tour = new Tour();
+        tour.setTourId(1);
+        tour.setParticipantCount(18);
+        tour.setMaxCapacity(20);
+        when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+
+        tourService.updateParticipantCount(1, 2);
+
+        verify(tourRepository, times(1)).save(tour);
+        assertEquals(20, tour.getParticipantCount());
+    }
+
+    @Test
+    void testRemoveBooking_Success() {
+        Tour tour = new Tour();
+        tour.setTourId(1);
+        tour.setParticipantCount(5);
+        when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+        when(tourBookingsRepository.existsById(1)).thenReturn(true);
+
+        tourService.removeBooking(1, 1);
+
+        assertEquals(4, tour.getParticipantCount());
+        verify(tourBookingsRepository, times(1)).deleteByTourIdAndBookingId(1, 1);
+        verify(tourRepository, times(1)).save(tour);
+    }
+
+    @Test
+    void testRemoveBooking_NotFound() {
+        Tour tour = new Tour();
+        tour.setTourId(1);
+        when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+        when(tourBookingsRepository.existsById(6969)).thenReturn(false);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tourService.removeBooking(1, 6969);
+        });
+
+        assertEquals("Booking not found with ID: 6969", exception.getMessage());
+        verify(tourBookingsRepository, never()).deleteByTourIdAndBookingId(anyInt(), anyInt());
+    }
+
+    @Test
+    void testHandleNewBooking_Success() {
+        BookingNotificationDTO bookingNotificationDto = new BookingNotificationDTO();
+        bookingNotificationDto.setTourId(1);
+        bookingNotificationDto.setBookingId(1);
+
+        when(tourBookingsRepository.existsByTourIdAndBookingId(1, 1)).thenReturn(false);
+
+        tourService.handleNewBooking(bookingNotificationDto);
+
+        verify(tourBookingsRepository, times(1)).save(any(TourBookings.class));
+    }
+
+    @Test
+    void testPreventDuplicateBookings() {
+        BookingNotificationDTO bookingNotificationDto = new BookingNotificationDTO();
+        bookingNotificationDto.setTourId(1);
+        bookingNotificationDto.setBookingId(1);
+
+        when(tourBookingsRepository.existsByTourIdAndBookingId(1, 1)).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tourService.handleNewBooking(bookingNotificationDto);
+        });
+
+        assertEquals("Booking already exists for the given tour.", exception.getMessage());
+        verify(tourBookingsRepository, never()).save(any(TourBookings.class));
+    }
+    @Test
+    void testSelfAssignToTour_Success() {
+        int tourId = 1;
+        String emailId = "guide@example.com";
+
+        when(restTemplate.getForObject("http://USER-MANAGEMENT-SERVICE/users/" + emailId + "/isTourGuide", Boolean.class))
+                .thenReturn(true);
+        Tour tour = new Tour();
+        tour.setTourId(tourId);
+        tour.setEmailId(null);
+        when(tourRepository.findById(tourId)).thenReturn(Optional.of(tour));
+        when(tourRepository.save(any(Tour.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tourService.selfAssignToTour(tourId, emailId);
+
+        verify(tourRepository, times(1)).findById(tourId);
+        verify(tourRepository, times(1)).save(tour);
+        verify(restTemplate, times(1)).getForObject(anyString(), eq(Boolean.class));
+        assertEquals(emailId, tour.getEmailId());
+    }
+
+    @Test
+    void testSelfAssignToTour_TourNotFound() {
+        int invalidTourId = 6969;
+        String emailId = "guide@example.com";
+
+        when(restTemplate.getForObject(anyString(), eq(Boolean.class))).thenReturn(true);
+        when(tourRepository.findById(invalidTourId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tourService.selfAssignToTour(invalidTourId, emailId);
+        });
+
+        assertEquals("Tour not found with ID: " + invalidTourId, exception.getMessage());
+        verify(tourRepository, times(1)).findById(invalidTourId);
+    }
+
+    @Test
+    void testSelfAssignToTour_InvalidEmail() {
+        int tourId = 1;
+        String emailId = "";
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tourService.selfAssignToTour(tourId, emailId);
+        });
+
+        assertEquals("Invalid emailId: " + emailId, exception.getMessage());
+
+        verify(restTemplate, never()).getForObject(anyString(), any());
+        verify(tourRepository, never()).findById(anyInt());
+    }
+
+    @Test
+    void testSelfAssignToTour_NonTourGuide() {
+        int tourId = 1;
+        String emailId = "nonGuide@example.com";
+
+        when(restTemplate.getForObject(anyString(), eq(Boolean.class))).thenReturn(false);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tourService.selfAssignToTour(tourId, emailId);
+        });
+
+        assertEquals("Only tour guides can assign themselves to a tour.", exception.getMessage());
+        verify(tourRepository, never()).findById(anyInt());
+    }
+
+    @Test
+    void testSelfAssignToTour_TourAlreadyAssigned() {
+        int tourId = 1;
+        String emailId = "anotherGuide@example.com";
+
+        when(restTemplate.getForObject(anyString(), eq(Boolean.class))).thenReturn(true); // Valid guide
+
+        Tour tour = new Tour();
+        tour.setTourId(tourId);
+        tour.setEmailId("existingGuide@example.com");
+        when(tourRepository.findById(tourId)).thenReturn(Optional.of(tour));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tourService.selfAssignToTour(tourId, emailId);
+        });
+
+        assertEquals("Tour already has a tour guide assigned.", exception.getMessage());
+        verify(tourRepository, times(1)).findById(tourId);
+        verify(tourRepository, never()).save(any());
+    }
+    @Test
+    void testSelfDeassignFromTour_Success() {
+        int tourId = 1;
+        String emailId = "guide@example.com";
+
+        when(restTemplate.getForObject("http://USER-MANAGEMENT-SERVICE/users/" + emailId + "/isTourGuide", Boolean.class))
+                .thenReturn(true);
+        Tour tour = new Tour();
+        tour.setTourId(tourId);
+        tour.setEmailId(emailId);
+
+        when(tourRepository.findById(tourId)).thenReturn(Optional.of(tour));
+        when(tourRepository.save(any(Tour.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tourService.selfDeassignFromTour(tourId, emailId);
+
+        verify(tourRepository, times(1)).save(tour);
+        assertNull(tour.getEmailId(), "Tour guide should be deassigned.");
+    }
+
+    @Test
+    void testGetAvailableTours() {
+        List<Tour> availableTours = new ArrayList<>();
+        availableTours.add(new Tour());
+        when(tourRepository.findAvailableTours()).thenReturn(availableTours);
+
+        List<Tour> result = tourService.getAvailableTours();
+
+        assertEquals(1, result.size(), "Available tours should match");
+        verify(tourRepository, times(1)).findAvailableTours();
+    }
+}
