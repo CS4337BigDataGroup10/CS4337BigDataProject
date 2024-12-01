@@ -48,6 +48,9 @@ subprojects {
 
 		// Byte Buddy for Testing
 		testImplementation 'net.bytebuddy:byte-buddy:1.14.4'
+
+		//SwaggerAPI
+		implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 	}
 
 	java {
