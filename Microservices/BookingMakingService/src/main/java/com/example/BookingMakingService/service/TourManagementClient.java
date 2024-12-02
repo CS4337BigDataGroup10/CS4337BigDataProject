@@ -42,9 +42,9 @@ public class TourManagementClient {
     }
 
     // Notify the tour management service about a booking cancellation
-    public ResponseEntity<String> notifyCancellation(Booking booking) {
+    public void notifyCancellation(Booking booking) {
         BookingNotificationDTO notificationDto = createNotificationDTO(booking);
-        return sendNotification(notificationDto, true); // true for booking removal
+        sendNotification(notificationDto, true);
     }
 
     // Helper method to create a BookingNotificationDTO from a Booking

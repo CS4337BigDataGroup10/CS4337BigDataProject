@@ -3,12 +3,15 @@ package com.example.BookingMakingService.service;
 import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.repository.BookingRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
+
 import java.util.Optional;
 
 @Service
+@Transactional
 public class BookingService {
+    @Autowired
     private final BookingRepository bookingRepository;
     //Constructor
     public BookingService(BookingRepository bookingRepository) {
@@ -18,17 +21,21 @@ public class BookingService {
     public String getAllBookings() {
         return bookingRepository.findAll().toString();
     }
-
     // New method to get bookings by emailId
     public String getBookingsByEmailId(String emailId) {
         return bookingRepository.findByEmailId(emailId).toString();
     }
     //this is saving the booking to the db
     //.save() is a JpaRepository method that is used to save the booking to the database.
-    @Transactional
+    public Booking findBookingById(int bookingId){return bookingRepository.findById(bookingId).get();}
+
     public Booking createBooking(Booking booking) {
-        bookingRepository.save(booking);
-        return booking;
+        try {
+            bookingRepository.save(booking);
+            return booking;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save booking", e);
+        }
     }
 
     public boolean cancelBooking(int bookingId) {
