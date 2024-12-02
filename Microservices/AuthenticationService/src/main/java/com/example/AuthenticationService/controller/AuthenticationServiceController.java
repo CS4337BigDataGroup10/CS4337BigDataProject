@@ -66,15 +66,7 @@ public class AuthenticationServiceController {
         }
     }
 
-//    @PostMapping("/refresh")
-//    public ResponseEntity<?> refreshToken(@RequestParam("email") String email) {
-//        try {
-//            String newToken = authenticationService.checkIfRefreshTokenIsExpired(email);
-//            return ResponseEntity.ok(newToken);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-//        }
-//    }
+
 
     @GetMapping("/user")
     public ResponseEntity<?> getUserDetails(@RequestParam("email") String email) {

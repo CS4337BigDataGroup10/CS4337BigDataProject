@@ -1,6 +1,6 @@
-package com.example.AuthenticationService.config;
+package com.example.BookingMakingService.config;
 
-import com.example.AuthenticationService.config.filter.JwtFilter;
+import com.example.BookingMakingService.config.filter.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,10 +20,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        // Allow unauthenticated access to `/auth/grantcode`
-                        .requestMatchers("/auth/grantcode").permitAll()
-                        // Require JWT authentication for all other requests
-                        .anyRequest().authenticated()
+                        .requestMatchers("/bookings").authenticated()
+                        .requestMatchers("/email/{emailId}").authenticated()
+                        .requestMatchers("/bookings/{bookingId}/cancel").authenticated()
+                        .requestMatchers("/").authenticated() // The POST endpoint
+                        .anyRequest().authenticated() // Ensure any additional requests are authenticated
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

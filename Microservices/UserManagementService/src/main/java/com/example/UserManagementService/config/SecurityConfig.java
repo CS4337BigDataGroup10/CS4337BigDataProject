@@ -1,6 +1,6 @@
-package com.example.AuthenticationService.config;
+package com.example.UserManagementService.config;
 
-import com.example.AuthenticationService.config.filter.JwtFilter;
+import com.example.UserManagementService.config.filter.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,9 +20,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        // Allow unauthenticated access to `/auth/grantcode`
-                        .requestMatchers("/auth/grantcode").permitAll()
-                        // Require JWT authentication for all other requests
+                        // Allow unauthenticated access to the ping endpoint
+                        .requestMatchers("/users/ping").permitAll()
+
+                        // Allow unauthenticated access to user creation and login
+                        .requestMatchers("/users/createuser", "/users/login").permitAll()
+
+                        // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

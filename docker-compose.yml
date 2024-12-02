@@ -81,6 +81,8 @@ services:
     container_name: BookingService
     build:
       context: ./Microservices/BookingMakingService
+    env_file:
+      - .env
     depends_on:
       booking-db:
         condition: service_healthy
@@ -119,6 +121,8 @@ services:
     container_name: TourManagementService
     build:
       context: ./Microservices/TourManagementService
+    env_file:
+      - .env
     depends_on:
       tour-db:
         condition: service_healthy
@@ -157,6 +161,8 @@ services:
     container_name: UserManagementService
     build:
       context: ./Microservices/UserManagementService
+    env_file:
+      - .env
     depends_on:
       user-db:
         condition: service_healthy

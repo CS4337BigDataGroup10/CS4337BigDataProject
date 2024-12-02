@@ -18,7 +18,6 @@ subprojects {
 
 	dependencies {
 		implementation 'org.springframework.boot:spring-boot-starter'
-		implementation 'org.springframework.boot:spring-boot-starter-security'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 		implementation 'mysql:mysql-connector-java:8.0.32'
@@ -29,11 +28,25 @@ subprojects {
 		runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 		runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+		implementation 'org.springframework.boot:spring-boot-starter-web'
 
-		// Test dependencies
-//		testImplementation 'org.mockito:mockito-core:5.4.0'
-//		testImplementation 'org.mockito:mockito-inline:5.4.0'
-//		testImplementation 'net.bytebuddy:byte-buddy:1.14.4'
+		// JSON Web Token (JWT) Library for JWT validation and generation
+		implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+		runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+		runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // Required for JWT with JSON processing
+
+		// Validation for request parameters and input
+		implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+		// Lombok (Optional: For easier model and class creation)
+
+
+
+		// Optional: Spring Cloud OpenFeign if you're calling other services
+		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+
+
 	}
 
 

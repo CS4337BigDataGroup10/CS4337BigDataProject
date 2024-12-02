@@ -1,6 +1,6 @@
-package com.example.AuthenticationService.service;
+package com.example.UserManagementService.service;
 
-import com.example.AuthenticationService.exceptions.JwtServiceExceptions;
+import com.example.UserManagementService.exceptions.JwtServiceExceptions;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
