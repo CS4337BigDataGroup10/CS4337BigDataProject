@@ -30,6 +30,8 @@ subprojects {
 		implementation 'org.springframework.boot:spring-boot-starter'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+		implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 
 		// Eureka Client for service discovery
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
@@ -48,6 +50,8 @@ subprojects {
 
 		// Byte Buddy for Testing
 		testImplementation 'net.bytebuddy:byte-buddy:1.14.4'
+
+
 	}
 
 	java {
