@@ -1,6 +1,7 @@
 package com.example.UserManagementService.exceptions;
 
-public class JwtServiceExceptions {
+public class
+JwtServiceExceptions {
 
     // Exception for expired JWT tokens
     public static class TokenExpiredException extends RuntimeException {

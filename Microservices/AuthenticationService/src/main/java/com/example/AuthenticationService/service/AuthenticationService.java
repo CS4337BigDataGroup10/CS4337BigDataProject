@@ -5,12 +5,14 @@ import com.example.AuthenticationService.Objects.oAuthResponse;
 import com.example.AuthenticationService.dto.UserDTO;
 import com.example.AuthenticationService.entity.UserEntity;
 import com.example.AuthenticationService.exceptions.AuthenticationServiceExceptions;
+import com.example.AuthenticationService.exceptions.JwtServiceExceptions;
 import com.example.AuthenticationService.repository.UserRepository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -105,7 +107,7 @@ public class AuthenticationService {
         }
     }
 
-    private void generateNewRefreshToken(UserEntity user) {
+    public void generateNewRefreshToken(UserEntity user) {
         String newRefreshToken = UUID.randomUUID().toString();
         LocalDateTime newExpiry = LocalDateTime.now().plusDays(7);
 
@@ -113,6 +115,43 @@ public class AuthenticationService {
         user.setRefreshTokenExpiry(newExpiry);
         userRepository.save(user);
         System.out.println("Refresh token has been updated.");
+    }
+
+    public Map<String, String> handleTokenRefresh(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Missing or invalid Authorization header.");
+        }
+
+        String jwtToken = authHeader.substring(7); // Remove "Bearer " prefix
+
+        // Validate the JWT token
+        String email;
+        try {
+            Claims claims = jwtService.validateToken(jwtToken);
+            email = claims.getSubject(); // Extract the email (subject) from the token
+        } catch (JwtServiceExceptions.TokenExpiredException e) {
+            throw new RuntimeException("JWT token has expired.");
+        } catch (JwtServiceExceptions.InvalidTokenException e) {
+            throw new RuntimeException("Invalid JWT token.");
+        }
+
+        // Retrieve the user from the database
+        UserEntity user = checkIfUserExistsInDB(email);
+
+        // Check if the refresh token is expired
+        if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
+            // Generate a new refresh token and update it in the database
+            generateNewRefreshToken(user);
+        }
+
+        // Generate a new JWT token
+        String newJwtToken = jwtService.generateToken(email);
+
+        // Return the new JWT token and the refresh token
+        Map<String, String> response = new HashMap<>();
+        response.put("jwtToken", newJwtToken);
+        response.put("refreshToken", user.getRefreshToken());
+        return response;
     }
 
     public oAuthResponse codeExchangeFromOauth(String code) {
@@ -164,4 +203,5 @@ public class AuthenticationService {
             );
         }
     }
+
 }

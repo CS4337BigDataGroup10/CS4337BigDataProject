@@ -18,19 +18,6 @@ public class JwtService {
         this.JwtSecret = Keys.hmacShaKeyFor(JwtSecret.getBytes());
     }
 
-    public String generateToken(String email) {
-        // Define the token expiration time (1 hour in milliseconds)
-        long oneHourInMillis = 60 * 60 * 1000;
-
-        // Generate the token
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + oneHourInMillis))
-                .signWith(SignatureAlgorithm.HS256, JwtSecret)
-                .compact();
-    }
-
     public Claims validateToken(String token) {
         try {
             return Jwts.parser()

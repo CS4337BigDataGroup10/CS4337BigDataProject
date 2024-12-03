@@ -33,7 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             try {
                 // Validate the token
-                Claims claims = jwtService.validateToken(jwtToken);
+                jwtService.validateToken(jwtToken);
                 // Optionally, set up security context if needed
                 SecurityContextHolder.getContext().setAuthentication(null);
             } catch (Exception e) {

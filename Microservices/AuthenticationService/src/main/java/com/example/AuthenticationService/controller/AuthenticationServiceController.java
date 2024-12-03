@@ -2,14 +2,19 @@ package com.example.AuthenticationService.controller;
 
 import com.example.AuthenticationService.dto.UserDTO;
 import com.example.AuthenticationService.entity.UserEntity;
+import com.example.AuthenticationService.exceptions.AuthenticationServiceExceptions;
+import com.example.AuthenticationService.exceptions.JwtServiceExceptions;
 import com.example.AuthenticationService.service.AuthenticationService;
 import com.example.AuthenticationService.service.JwtService;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -56,25 +61,16 @@ public class AuthenticationServiceController {
         }
     }
 
-    @PostMapping("/validate")
-    public ResponseEntity<?> validateToken(@RequestParam("token") String token) {
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshJwtToken(@RequestHeader("Authorization") String authHeader) {
         try {
-            jwtService.validateToken(token);
-            return ResponseEntity.ok("Token is valid.");
+            Map<String, String> response = authenticationService.handleTokenRefresh(authHeader);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Token: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 
 
 
-    @GetMapping("/user")
-    public ResponseEntity<?> getUserDetails(@RequestParam("email") String email) {
-        try {
-            UserEntity user = authenticationService.checkIfUserExistsInDB(email);
-            return ResponseEntity.ok(user);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());
-        }
-    }
 }
