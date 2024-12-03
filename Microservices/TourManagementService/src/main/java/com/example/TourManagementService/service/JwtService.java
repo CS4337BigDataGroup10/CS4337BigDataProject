@@ -1,7 +1,5 @@
 package com.example.TourManagementService.service;
 
-import com.example.AuthenticationService.entity.UserEntity;
-import com.example.AuthenticationService.exceptions.AuthenticationServiceExceptions;
 import com.example.TourManagementService.exceptions.JwtServiceExceptions;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
