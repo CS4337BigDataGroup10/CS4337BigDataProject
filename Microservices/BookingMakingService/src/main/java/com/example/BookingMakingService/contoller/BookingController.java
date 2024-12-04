@@ -40,10 +40,8 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<String> createBooking(@RequestBody Booking booking) {
         try {
-            // Step 1: Fetch all available tours
             List<Tour> availableTours = tourManagementClient.getNonFullTours();
 
-            // Step 2: Validate if the requested tour is available
             boolean tourAvailable = availableTours.stream()
                     .anyMatch(tour -> tour.getTourId() == booking.getTourId());
 
@@ -52,10 +50,10 @@ public class BookingController {
                         .body("Selected tour is not available or is fully booked.");
             }
 
-            // Step 3: Create the booking locally
+            // creating the booking locally
             Booking newBooking = bookingService.createBooking(booking);
 
-            // Step 4: Notify TourManagementService to update participant count
+            // notifying TourManagementService to update participant count
             ResponseEntity<String> notificationResponse = tourManagementClient.notifyTourManagement(newBooking);
 
             if (notificationResponse.getStatusCode() != HttpStatus.OK) {
