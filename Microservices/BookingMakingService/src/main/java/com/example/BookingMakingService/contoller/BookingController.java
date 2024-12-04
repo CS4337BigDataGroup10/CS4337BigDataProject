@@ -38,14 +38,15 @@ public class BookingController {
         return ResponseEntity.ok(userBookings);
     }
 
-    @PostMapping("/book/{tourid}")
-    public ResponseEntity<String> createBooking(@PathVariable Long tourid) {
+    @PostMapping("/book/{tourId}")
+    public ResponseEntity<String> createBooking(@PathVariable("tourId") int tourId) {
         // Fetch all available tours
+        System.out.println(tourId);
         List<Tour> availableTours = tourManagementClient.getNonFullTours();
         System.out.println("Got all tours");
         //Check if the requested tour is available
         boolean tourAvailable = availableTours.stream()
-                .anyMatch(tour -> tour.getTourId() == tourid);
+                .anyMatch(tour -> tour.getTourId() == tourId);
         if(tourAvailable) {
             System.out.println("Tour is available to be booked ");
         }
@@ -61,10 +62,18 @@ public class BookingController {
         booking.setEmailId("test");
         booking.setCancelled(false);
         booking.setBookingId(counter);
-        System.out.println("Creating Booking");
-        Booking newBooking = bookingService.createBooking(booking);
-        System.out.println("Notifying tour management");
-        tourManagementClient.notifyTourManagement(newBooking); //this notifys tour management service that the booking has been created after going through the checks.
+        counter++;
+        try {
+            System.out.println("Creating Booking");
+            Booking newBooking = bookingService.createBooking(booking);
+            System.out.println("Notifying tour management");
+            tourManagementClient.notifyTourManagement(newBooking); //this notifys tour management service that the booking has been created after going through the checks.
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating booking" +e.getMessage());
+        }
+
         return ResponseEntity.ok("Booking created successfully and notification sent.");
     }
 

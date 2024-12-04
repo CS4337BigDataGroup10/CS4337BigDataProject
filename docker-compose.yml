@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # Eureka Server (No database)
   eureka-server:
@@ -110,9 +108,9 @@ services:
       - "3308:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
+      interval: 10s
       retries: 5
-      timeout: 2s
+      timeout: 5s
 
   tour-management-service:
     image: tour-management-service:latest
@@ -132,6 +130,7 @@ services:
       SPRING_APPLICATION_NAME: tour-management-service
       SERVER_PORT: 8083
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    restart: always
 
   # User Management Service
   user-db:
@@ -174,3 +173,4 @@ services:
 networks:
   net:
     driver: bridge
+

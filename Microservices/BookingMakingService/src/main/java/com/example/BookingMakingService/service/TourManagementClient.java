@@ -23,9 +23,10 @@ public class TourManagementClient {
     public TourManagementClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
+
     //may need to change the url to the correct name when we implement eureka server.
     public List<Tour> getNonFullTours() {
-        String url = "http://tour-management-service/api/tours/available"; // This is the end point of the tour management service to see what tours are available. It checks any tour less than 20
+        String url = "http://tour-management-service/tours/available"; // This is the end point of the tour management service to see what tours are available. It checks any tour less than 20
         ResponseEntity<List<Tour>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -58,8 +59,8 @@ public class TourManagementClient {
     // Send notification for either booking or cancellation
     private ResponseEntity<String> sendNotification(BookingNotificationDTO notificationDto, boolean isCancellation) {
         String url = isCancellation
-                ? "http://tour-management-service/api/tours/" + notificationDto.getTourId() + "/removeBooking"
-                : "http://tour-management-service/api/tours/" + notificationDto.getTourId() + "/addBooking";
+                ? "http://tour-management-service/tours/" + notificationDto.getTourId() + "/removeBooking"
+                : "http://tour-management-service/tours/" + notificationDto.getTourId() + "/addBooking";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
