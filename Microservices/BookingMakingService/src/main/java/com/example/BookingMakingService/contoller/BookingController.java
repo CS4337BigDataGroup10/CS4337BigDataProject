@@ -39,24 +39,48 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<String> createBooking(@RequestBody Booking booking) {
-        // Step 1: Fetch all available tours
-        List<Tour> availableTours = tourManagementClient.getNonFullTours();
+        try {
+            // Step 1: Fetch all available tours
+            List<Tour> availableTours = tourManagementClient.getNonFullTours();
 
-        // Step 2: Check if the requested tour is available
-        boolean tourAvailable = availableTours.stream()
-                .anyMatch(tour -> tour.getTourId() == booking.getTourId());
-                //this is checking if the tour we are trying to book into is available and there. If it is not available, it will return a bad request
-        if (!tourAvailable) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Selected tour is not available.");
+            // Step 2: Validate if the requested tour is available
+            boolean tourAvailable = availableTours.stream()
+                    .anyMatch(tour -> tour.getTourId() == booking.getTourId());
+
+            if (!tourAvailable) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Selected tour is not available or is fully booked.");
+            }
+
+            // Step 3: Create the booking locally
+            Booking newBooking = bookingService.createBooking(booking);
+
+            // Step 4: Notify TourManagementService to update participant count
+            ResponseEntity<String> notificationResponse = tourManagementClient.notifyTourManagement(newBooking);
+
+            if (notificationResponse.getStatusCode() != HttpStatus.OK) {
+                // Roll back booking if TourManagementService fails
+                bookingService.cancelBooking(newBooking.getBookingId());
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Booking failed. Capacity validation at TourManagementService failed. Try again.");
+            }
+
+            return ResponseEntity.ok("Booking created successfully.");
+
+        } catch (IllegalStateException e) {
+            // deal with race conditions or capacity issues
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Booking failed because of concurrent requests or capacity issues. Try again.");
+        } catch (IllegalArgumentException e) {
+            // deal with invalid inputs or duplicate bookings
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            // any unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred: " + e.getMessage());
         }
-
-        // Step 3: Proceed with booking creation
-        //Adds to db of booking repository
-        Booking newBooking = bookingService.createBooking(booking);
-        tourManagementClient.notifyTourManagement(newBooking); //this notifys tour management service that the booking has been created after going through the checks.
-        return ResponseEntity.ok("Booking created successfully and notification sent.");
     }
+
 
     // New endpoint to cancel a booking
     @PutMapping("/bookings/{bookingId}/cancel")

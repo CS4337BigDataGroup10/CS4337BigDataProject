@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -90,5 +91,48 @@ class TourSchedulerTest {
         verify(tourRepository, times(1)).save(scheduledTour);
         assertEquals(tourGuideEmail, scheduledTour.getEmailId(), "Tour guide assignment failed!");
     }
+
+    @Test
+    void testCreateDailyTours_Concurrent() throws InterruptedException {
+        // Simulate concurrency with AtomicBoolean
+        AtomicBoolean toursExist = new AtomicBoolean(false);
+        when(tourRepository.existsByTourDate(anyString())).thenAnswer(invocation -> {
+            if (toursExist.get()) {
+                return true;
+            }
+            toursExist.set(true); // Set to true after the first call
+            return false; // Simulate tours dont exist initially
+        });
+
+        List<Tour> savedTours = new ArrayList<>();
+        when(tourRepository.saveAll(anyList())).thenAnswer(invocation -> {
+            savedTours.addAll(invocation.getArgument(0));
+            return savedTours;
+        });
+
+        // Run the tasks concurrently
+        Runnable createToursTask = () -> {
+            try {
+                tourScheduler.createDailyTours();
+            } catch (Exception e) {
+                System.out.println(Thread.currentThread().getName() + " failed: " + e.getMessage());
+            }
+        };
+
+        Thread thread1 = new Thread(createToursTask, "Thread1");
+        Thread thread2 = new Thread(createToursTask, "Thread2");
+
+        thread1.start();
+        thread2.start();
+
+        thread1.join();
+        thread2.join();
+
+        assertEquals(9, savedTours.size(), "Duplicate daily tours were created!");
+        verify(tourRepository, times(2)).existsByTourDate(anyString()); // Both threads checked if tours exist
+        verify(tourRepository, times(1)).saveAll(anyList()); // Only one save should happen
+    }
+
+
 
 }

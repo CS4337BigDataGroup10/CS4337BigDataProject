@@ -7,6 +7,7 @@ import com.example.TourManagementService.exceptions.CapacityExceededException;
 import com.example.TourManagementService.repository.TourRepository;
 import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.service.TourService;
+import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,6 +18,10 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -76,14 +81,21 @@ class TourServiceTest {
         tour.setTourId(1);
         tour.setParticipantCount(18);
         tour.setMaxCapacity(20);
+        tour.setVersion(1); // Initial version
+
         when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+        when(tourRepository.save(any(Tour.class))).thenAnswer(invocation -> {
+            Tour savedTour = invocation.getArgument(0);
+            savedTour.setVersion(2); // Simulate version increment after save
+            return savedTour;
+        });
 
         tourService.updateParticipantCount(1, 2);
 
         verify(tourRepository, times(1)).save(tour);
         assertEquals(20, tour.getParticipantCount());
+        assertEquals(2, tour.getVersion()); // Ensure version increment
     }
-
     @Test
     void testRemoveBooking_Success() {
         Tour tour = new Tour();
@@ -260,4 +272,77 @@ class TourServiceTest {
         assertEquals(1, result.size(), "Available tours should match");
         verify(tourRepository, times(1)).findAvailableTours();
     }
+
+    @Test
+    void testUpdateParticipantCount_OptimisticLocking() {
+        Tour tour = new Tour();
+        tour.setTourId(1);
+        tour.setParticipantCount(10);
+        tour.setMaxCapacity(20);
+        tour.setVersion(1);
+        when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+        when(tourRepository.save(any(Tour.class))).thenThrow(new OptimisticLockException("Optimistic locking failure"));
+
+        // Call the service method and assert the exception
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            tourService.updateParticipantCount(1, 5); // Attempt to add 5 participants
+        });
+
+        assertEquals("Concurrent booking. Try again.", exception.getMessage(),
+                "The exception message should indicate a concurrency issue.");
+        verify(tourRepository, times(1)).findById(1); // Ensure findById was called
+        verify(tourRepository, times(1)).save(tour);  // Ensure save was attempted
+    }
+
+    @Test
+    void testConcurrentBookings() throws InterruptedException {
+        Tour tour = new Tour();
+        tour.setTourId(1);
+        tour.setParticipantCount(10);
+        tour.setMaxCapacity(11); // Only 1 spot left
+        tour.setVersion(1);
+
+        // mocking repository behavior
+        when(tourRepository.findById(1)).thenReturn(Optional.of(tour));
+        when(tourRepository.save(any(Tour.class))).thenAnswer(invocation -> {
+            // save logic with optimistic locking
+            Tour savedTour = invocation.getArgument(0);
+            if (savedTour.getParticipantCount() >= savedTour.getMaxCapacity()) {
+                throw new OptimisticLockException("Simulated optimistic locking failure");
+            }
+            savedTour.setVersion(savedTour.getVersion() + 1);
+            savedTour.setParticipantCount(savedTour.getParticipantCount() + 1);
+            return savedTour;
+        });
+
+        // using a CountDownLatch to coordinate thread execution
+        CountDownLatch latch = new CountDownLatch(2);
+
+        Runnable bookingTask = () -> {
+            try {
+                tourService.updateParticipantCount(1, 1); // Attempt to book 1 spot
+            } catch (Exception e) {
+                System.out.println(Thread.currentThread().getName() + " failed: " + e.getMessage());
+            } finally {
+                latch.countDown(); // Signal task completion
+            }
+        };
+
+        // executing tasks concurrently
+        Thread user1 = new Thread(bookingTask, "User1");
+        Thread user2 = new Thread(bookingTask, "User2");
+
+        user1.start();
+        user2.start();
+
+        latch.await(); // Wait for both threads to finish
+
+        verify(tourRepository, times(2)).findById(1); // Both threads tried to fetch the tour
+        verify(tourRepository, atLeastOnce()).save(any(Tour.class)); // Save should be called at least once
+
+        // Check that the participant count does not exceed capacity
+        assertTrue(tour.getParticipantCount() <= tour.getMaxCapacity(),
+                "Participant count exceeded max capacity");
+    }
+
 }

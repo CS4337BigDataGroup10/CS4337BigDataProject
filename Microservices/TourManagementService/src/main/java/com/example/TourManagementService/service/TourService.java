@@ -6,6 +6,7 @@ import com.example.TourManagementService.entity.TourBookings;
 import com.example.TourManagementService.exceptions.*;
 import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.repository.TourRepository;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,17 +91,25 @@ public class TourService {
     // Method to update participant count in a tour
     @Transactional
     public void updateParticipantCount(int tourId, int size) {
-        Tour tour = getTourById(tourId);
-        int newParticipantCount = tour.getParticipantCount() + size;
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new TourNotFoundException("Tour not found with ID: " + tourId));
 
+        int newParticipantCount = tour.getParticipantCount() + size;
         // Check if the new count exceeds the maximum capacity
-        if (newParticipantCount > 20) {
+
+        if (newParticipantCount > tour.getMaxCapacity()) {
             throw new CapacityExceededException("Cannot add booking, tour capacity exceeded.");
         }
 
         tour.setParticipantCount(newParticipantCount);
-        tourRepository.save(tour);
+
+        try {
+            tourRepository.save(tour); // JPA will check the @Version field
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("Concurrent booking. Try again.");
+        }
     }
+
     //method to remove a booking from a tour
     @Transactional
     public void removeBooking(int tourId, int bookingId) {
