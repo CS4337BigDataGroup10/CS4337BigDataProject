@@ -28,7 +28,10 @@ subprojects {
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+		// SwaggerAPI
+		implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 	}
+
 	tasks.bootJar {
 		mainClassName = 'com.example.UserManagementService.UserManagementServiceApplication'
 	}
