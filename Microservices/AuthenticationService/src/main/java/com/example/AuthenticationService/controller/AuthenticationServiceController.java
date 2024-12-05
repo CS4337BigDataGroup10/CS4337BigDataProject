@@ -85,4 +85,5 @@ public class AuthenticationServiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());
         }
     }
+
 }
