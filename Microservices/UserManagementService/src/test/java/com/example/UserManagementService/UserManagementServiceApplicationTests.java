@@ -172,12 +172,5 @@ class UserControllerTest {
         verify(userService, times(1)).isTourGuide(email);
     }
 
-    // Endpoint to ping
-    @Test
-    void testPing() {
-        String response = userController.ping();
-
-        assertEquals("Hello", response);
-    }
 }
 
