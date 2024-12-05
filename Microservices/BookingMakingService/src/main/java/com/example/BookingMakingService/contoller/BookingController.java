@@ -104,4 +104,5 @@ public class BookingController {
                     .body("Booking with ID " + booking.getBookingId() + " is already cancelled or does not exist.");
         }
     }
+
 }

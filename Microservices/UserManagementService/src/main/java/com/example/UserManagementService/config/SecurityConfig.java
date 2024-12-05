@@ -1,6 +1,6 @@
-package com.example.AuthenticationService.config;
+package com.example.UserManagementService.config;
 
-import com.example.AuthenticationService.config.filter.JwtFilter;
+import com.example.UserManagementService.config.filter.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,16 +18,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Disable CSRF protection since it's not needed for APIs
+        http.csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
                 .authorizeHttpRequests(authorize -> authorize
-                        // Allow unauthenticated access to `/auth/grantcode`
-                        .requestMatchers("/auth/grantcode").permitAll()
-                        // Require JWT authentication for `/auth/user` and `/auth/refresh`
-                        .requestMatchers("/auth/user", "/auth/refresh").authenticated()
-                        // All other endpoints require authentication by default
+                        // Require authentication for all endpoints
                         .anyRequest().authenticated()
                 )
-                // Add the JwtFilter before the default UsernamePasswordAuthenticationFilter
+                // Add the JwtFilter before the UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
