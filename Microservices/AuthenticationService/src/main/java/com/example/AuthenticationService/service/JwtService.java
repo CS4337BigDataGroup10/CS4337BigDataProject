@@ -12,10 +12,10 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private final SecretKey googleClientSecret;
+    private final SecretKey JwtSecret;
 
-    public JwtService(@Value("${google.client.secret}") String googleClientSecret) {
-        this.googleClientSecret = Keys.hmacShaKeyFor(googleClientSecret.getBytes());
+    public JwtService(@Value("${jwt.secret}") String googleClientSecret) {
+        this.JwtSecret = Keys.hmacShaKeyFor(googleClientSecret.getBytes());
     }
 
     public String generateToken(String email) {
@@ -27,14 +27,14 @@ public class JwtService {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + oneHourInMillis))
-                .signWith(SignatureAlgorithm.HS256, googleClientSecret)
+                .signWith(SignatureAlgorithm.HS256, JwtSecret)
                 .compact();
     }
 
     public Claims validateToken(String token) {
         try {
             return Jwts.parser()
-                    .setSigningKey(googleClientSecret)
+                    .setSigningKey(JwtSecret)
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
@@ -43,4 +43,6 @@ public class JwtService {
             throw new JwtServiceExceptions.InvalidTokenException("Token is invalid", e);
         }
     }
+
+
 }

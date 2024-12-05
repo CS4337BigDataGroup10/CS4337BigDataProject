@@ -32,9 +32,9 @@ services:
       - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 5
-      timeout: 2s
+      interval: 10s
+      retries: 10
+      timeout: 5s
 
   auth-service:
     image: auth-service
@@ -72,9 +72,9 @@ services:
       - "3307:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 5
-      timeout: 2s
+      interval: 10s
+      retries: 10
+      timeout: 5s
 
   booking-service:
     image: booking-service
@@ -110,9 +110,9 @@ services:
       - "3308:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 5
-      timeout: 2s
+      interval: 10s
+      retries: 10
+      timeout: 5s
 
   tour-management-service:
     image: tour-management-service:latest
@@ -148,9 +148,9 @@ services:
       - "3309:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 5
-      timeout: 2s
+      interval: 10s
+      retries: 10
+      timeout: 5s
 
   user-management-service:
     image: user-management-service
@@ -169,7 +169,7 @@ services:
     environment:
       SPRING_APPLICATION_NAME: user-management-service
       SERVER_PORT: 8084
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/  # Updated Eureka URL
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
 
 networks:
   net:
