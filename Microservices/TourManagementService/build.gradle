@@ -30,6 +30,9 @@ subprojects {
 
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 		testImplementation 'com.h2database:h2:2.1.214'
+
+		// SwaggerAPI
+		implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 	}
 	tasks.bootJar {
 		mainClassName = 'com.example.TourManagementService.TourManagementServiceApplication'
