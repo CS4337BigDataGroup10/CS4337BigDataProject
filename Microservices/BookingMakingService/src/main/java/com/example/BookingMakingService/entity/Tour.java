@@ -2,7 +2,6 @@ package com.example.BookingMakingService.entity;
 
 import jakarta.persistence.*;
 
-
 @Entity
 @Table(name = "Tour")
 public class Tour {
@@ -22,7 +21,6 @@ public class Tour {
 
     @Column(nullable = false)
     private String tourGuideId;
-
 
     // For admin
     public String getTourGuideId() {

@@ -1,6 +1,0 @@
-rootProject.name = 'Eureka'
-
-
-include 'EurekaServer'
-
-project(':EurekaServer').projectDir = file('Microservices/EurekaServer')

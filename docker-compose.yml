@@ -39,8 +39,6 @@ services:
   auth-service:
     image: auth-service
     container_name: AuthService
-    build:
-      context: ./Microservices/AuthenticationService
     env_file:
       - .env
     depends_on:
@@ -79,8 +77,6 @@ services:
   booking-service:
     image: booking-service
     container_name: BookingService
-    build:
-      context: ./Microservices/BookingMakingService
     depends_on:
       booking-db:
         condition: service_healthy
@@ -117,8 +113,6 @@ services:
   tour-management-service:
     image: tour-management-service:latest
     container_name: TourManagementService
-    build:
-      context: ./Microservices/TourManagementService
     depends_on:
       tour-db:
         condition: service_healthy
@@ -155,8 +149,6 @@ services:
   user-management-service:
     image: user-management-service
     container_name: UserManagementService
-    build:
-      context: ./Microservices/UserManagementService
     depends_on:
       user-db:
         condition: service_healthy
@@ -169,7 +161,7 @@ services:
     environment:
       SPRING_APPLICATION_NAME: user-management-service
       SERVER_PORT: 8084
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/  # Updated Eureka URL
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
 
 networks:
   net:
