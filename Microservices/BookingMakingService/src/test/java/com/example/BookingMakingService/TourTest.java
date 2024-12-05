@@ -40,8 +40,8 @@ class TourTest {
     void testUpdateParticipantCount() {
         Tour tour = new Tour();
 
-        tour.setParticipantCount(30);
-        assertEquals(30, tour.getParticipantCount());
+        tour.setParticipantCount(18);
+        assertEquals(18, tour.getParticipantCount());
     }
 
 }
