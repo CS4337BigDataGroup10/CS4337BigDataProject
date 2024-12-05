@@ -5,9 +5,7 @@ public class UserManagementServiceExceptions extends RuntimeException {
         super(message);
     }
 
-    public UserManagementServiceExceptions(String message, Throwable cause) {
-        super(message, cause);
-    }
+
 
 
 }
