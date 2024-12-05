@@ -67,9 +67,9 @@ public class AuthenticationServiceController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshJwtToken(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> refreshJwtToken() {
         try {
-            Map<String, String> response = authenticationService.handleTokenRefresh(authHeader);
+            Map<String, String> response = authenticationService.handleTokenRefresh();
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -85,5 +85,20 @@ public class AuthenticationServiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());
         }
     }
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteUser(@RequestParam("email") String email) {
+        try {
+            // Attempt to remove the user by email
+            authenticationService.removeUserByEmail(email);
+
+            // Return a success response
+            return ResponseEntity.ok("User with email " + email + " has been removed successfully.");
+        } catch (RuntimeException e) {
+            // Handle exception and return an error response
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
 
 }
