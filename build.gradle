@@ -33,6 +33,7 @@ subprojects {
 
 		// Eureka Client for service discovery
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+		implementation 'org.springframework.boot:spring-boot-starter-security'
 
 		// MySQL Database
 		implementation 'mysql:mysql-connector-java:8.0.32'
