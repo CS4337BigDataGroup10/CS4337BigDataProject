@@ -5,7 +5,6 @@ import com.example.BookingMakingService.dto.BookingNotificationDTO;
 import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.entity.Tour;
 import com.example.BookingMakingService.service.TourManagementClient;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,17 +13,13 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) // Ensures Mockito handles annotations
@@ -46,7 +41,7 @@ public class TourManagementClientTest {
         List<Tour> expectedTours = Arrays.asList(tour1,tour2);
         ResponseEntity<List<Tour>> responseEntity = new ResponseEntity<>(expectedTours, HttpStatus.OK);
 
-        Mockito.when(restTemplate.exchange(
+        when(restTemplate.exchange(
                 Mockito.eq(url),
                 Mockito.eq(HttpMethod.GET),
                 Mockito.isNull(),
@@ -55,8 +50,8 @@ public class TourManagementClientTest {
 
         List<Tour> actualTours = tourManagementClient.getNonFullTours();
 
-        Assertions.assertEquals(expectedTours, actualTours);
-        Mockito.verify(restTemplate).exchange(
+        assertEquals(expectedTours, actualTours);
+        verify(restTemplate).exchange(
                 Mockito.eq(url),
                 Mockito.eq(HttpMethod.GET),
                 Mockito.isNull(),
@@ -80,11 +75,13 @@ public class TourManagementClientTest {
         ResponseEntity<String> response = tourManagementClient.notifyTourManagement(booking);
 
         // Assert
-        Assertions.assertEquals("Success", response.getBody());
-        Mockito.verify(tourManagementClient).sendNotification(
+        assertEquals("Success", response.getBody());
+        verify(tourManagementClient).sendNotification(
                 Mockito.any(BookingNotificationDTO.class), Mockito.eq(false)
         );
     }
+
+
 
 
 }

@@ -7,8 +7,8 @@ public class BookingExceptions {
             super(message);
         }
 
-        public BookingSearchException(String message,Throwable cause){
-            super(message+"Throwable: No Booking found with that ID. Try creating the booking again or contact support");
+        public BookingSearchException(String message, Throwable cause) {
+            super(message + " Throwable: No Booking found with that ID. Try creating the booking again or contact support", cause);
         }
     }
-}
+    }
