@@ -8,7 +8,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "authenticatedusers")
+@Table(name = "AuthenticatedUsers")
 public class UserEntity {
     @Id
     @Column(unique = true, nullable = false)

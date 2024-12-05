@@ -1,11 +1,11 @@
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.1.0' apply false
-	id 'io.spring.dependency-management' version '1.1.0' apply true
+	id 'io.spring.dependency-management' version '1.1.0' apply false
 }
 
 allprojects {
-	group = 'com.example/Microservices'
+	group = 'com.example.Microservices'
 	version = '1.0.0-SNAPSHOT'
 
 	repositories {
@@ -18,32 +18,42 @@ subprojects {
 	apply plugin: 'io.spring.dependency-management'
 	apply plugin: 'java'
 
-	dependencies {
-		// Spring Cloud Eureka Client
+	dependencyManagement {
+		imports {
+			// Spring Cloud BOM for dependency version management
+			mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2022.0.4'
+		}
+	}
 
-		// Spring Boot Starters
+	dependencies {
+		// Spring Boot dependencies
 		implementation 'org.springframework.boot:spring-boot-starter'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-		implementation 'mysql:mysql-connector-java:8.0.32'
-		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-		testImplementation 'com.h2database:h2'
-		implementation 'mysql:mysql-connector-java:8.0.32' // Replace with the latest version
+		// Eureka Client for service discovery
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+		implementation 'org.springframework.boot:spring-boot-starter-security'
 
 		// MySQL Database
 		implementation 'mysql:mysql-connector-java:8.0.32'
-
-		// Testing
-		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 		// JSON Web Token (JWT) Dependencies
 		implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 		runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 		runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
+		// Testing
+		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+		testImplementation 'com.h2database:h2'
+
 		// Byte Buddy for Testing
 		testImplementation 'net.bytebuddy:byte-buddy:1.14.4'
+
+		//SwaggerAPI
+		implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
+		implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
 	}
 
 	java {
@@ -53,14 +63,6 @@ subprojects {
 
 	test {
 		useJUnitPlatform()
-		// JVM arguments to enable Byte Buddy experimental features for unsupported Java versions
 		jvmArgs '-Dnet.bytebuddy.experimental=true'
-	}
-}
-
-dependencyManagement {
-	imports {
-		// Use the Spring Cloud BOM to manage versions of Spring Cloud dependencies
-		mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2022.0.4' // Use the latest version compatible with Spring Boot 3.1.0
 	}
 }
