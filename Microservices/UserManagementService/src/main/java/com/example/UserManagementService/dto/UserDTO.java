@@ -4,17 +4,15 @@ public class UserDTO {
     private String email;
     private String givenName;
     private String familyName;
-    private String profilePicture;
     private boolean isTourGuide;
 
     // Default constructor
     public UserDTO() {}
 
-    public UserDTO(String email, String givenName, String familyName, String profilePicture, Boolean isTourGuide) {
+    public UserDTO(String email, String givenName, String familyName,  Boolean isTourGuide) {
         this.email = email;
         this.givenName = givenName;
         this.familyName = familyName;
-        this.profilePicture = profilePicture;
         this.isTourGuide = isTourGuide;
     }
 
@@ -42,13 +40,7 @@ public class UserDTO {
         this.familyName = familyName;
     }
 
-    public String getProfilePicture() {
-        return profilePicture;
-    }
 
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
-    }
 
     public void setTourGuide(boolean tourGuide) {
         isTourGuide = tourGuide;
@@ -59,16 +51,15 @@ public class UserDTO {
     }
 
 
-    // Optional: toString method
     @Override
     public String toString() {
         return "UserDTO{" +
-                "email='" + email +
-        ", givenName='" + givenName +
-        ", familyName='" + familyName +
-        ", profilePicture='" + profilePicture +
-        ", isTourGuide='" + isTourGuide() +
-        '}';
+                "email='" + email + '\'' +
+                ", givenName='" + givenName + '\'' +
+                ", familyName='" + familyName + '\'' +
+                ", isTourGuide=" + isTourGuide +
+                '}';
     }
+
 }
 

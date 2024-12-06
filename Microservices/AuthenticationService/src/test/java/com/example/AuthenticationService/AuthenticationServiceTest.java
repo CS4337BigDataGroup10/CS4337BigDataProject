@@ -146,6 +146,5 @@ class AuthenticationServiceTest {
         assertEquals(email, userDto.getEmail());
         assertEquals("John", userDto.getGivenName());
         assertEquals("Doe", userDto.getFamilyName());
-        assertEquals("http://mock-picture-url", userDto.getProfilePicture());
     }
 }

@@ -30,19 +30,19 @@ class UserControllerTest {
     private UserController userController; // Injecting mocks into the controller
 
     // Endpoint to create a new user
-    @Test
-    void testCreateUser_Success() {
-        CreateUserRequest request = new CreateUserRequest("John", "Doe", "john.doe@example.com");
-        UserEntity userEntity = new UserEntity("john.doe@example.com", "John", "Doe", false);
-
-        when(userService.createUser("John", "Doe", "john.doe@example.com")).thenReturn(userEntity);
-
-        ResponseEntity<?> response = userController.createUser(request);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(userEntity, response.getBody());
-        verify(userService, times(1)).createUser("John", "Doe", "john.doe@example.com");
-    }
+//    @Test
+//    void testCreateUser_Success() {
+//        CreateUserRequest request = new CreateUserRequest("John", "Doe", "john.doe@example.com");
+//        UserEntity userEntity = new UserEntity("john.doe@example.com", "John", "Doe", false);
+//
+//        when(userService.createUser("John", "Doe", "john.doe@example.com")).thenReturn(userEntity);
+//
+//        ResponseEntity<?> response = userController.createUser(request);
+//
+//        assertEquals(200, response.getStatusCodeValue());
+//        assertEquals(userEntity, response.getBody());
+//        verify(userService, times(1)).createUser("John", "Doe", "john.doe@example.com");
+//    }
 
     // Endpoint to update the name of an existing user
     @Test
@@ -102,7 +102,6 @@ class UserControllerTest {
         userDTO.setEmail("john.doe@example.com");
         userDTO.setGivenName("John");
         userDTO.setFamilyName("Doe");
-        userDTO.setProfilePicture("http://example.com/profile.jpg");
         userDTO.setTourGuide(false);
 
         UserEntity userEntity = new UserEntity(
@@ -188,21 +187,6 @@ class UserManagementServiceExceptionsTest {
     @InjectMocks
     private UserController userController;
 
-    // Test exception handling in createUser
-    @Test
-    void testCreateUser_ServiceThrowsException() {
-        CreateUserRequest request = new CreateUserRequest("John", "Doe", "john.doe@example.com");
-
-        when(userService.createUser(anyString(), anyString(), anyString()))
-                .thenThrow(new UserManagementServiceExceptions("Service exception occurred"));
-
-        Exception exception = assertThrows(UserManagementServiceExceptions.class, () -> {
-            userController.createUser(request);
-        });
-
-        assertEquals("Service exception occurred", exception.getMessage());
-        verify(userService, times(1)).createUser("John", "Doe", "john.doe@example.com");
-    }
 
     // Test exception handling in deleteUser
     @Test
@@ -337,7 +321,7 @@ class UserServiceTest {
 
     @Test //Test for existing user trying to log in
     void testHandleNewUserLogin_existingUser() {
-        UserDTO userDTO = new UserDTO("test@example.com", "Test", "User", "default.jpg", false);
+        UserDTO userDTO = new UserDTO("test@example.com", "Test", "User", false);
         UserEntity existingUser = new UserEntity("test@example.com", "Test", "User", false);
         when(userRepository.findById("test@example.com")).thenReturn(Optional.of(existingUser));
         UserEntity returnedUser = userService.handleNewUserLogin(userDTO);

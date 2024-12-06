@@ -18,16 +18,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Disable CSRF protection since it's not needed for APIs
+        http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        // Allow unauthenticated access to `/auth/grantcode`
-                        .requestMatchers("/auth/grantcode").permitAll()
-                        // Require JWT authentication for `/auth/user` and `/auth/refresh`
-                        .requestMatchers("/auth/user", "/auth/refresh").authenticated()
-                        // All other endpoints require authentication by default
+                        .requestMatchers("/auth/grantcode", "/auth/refreshJWT").permitAll()
+                        .requestMatchers("/auth/user").authenticated()
                         .anyRequest().authenticated()
                 )
-                // Add the JwtFilter before the default UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

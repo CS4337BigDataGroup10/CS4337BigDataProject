@@ -4,19 +4,13 @@ import com.example.AuthenticationService.dto.UserDTO;
 import com.example.AuthenticationService.entity.UserEntity;
 import com.example.AuthenticationService.service.AuthenticationService;
 import com.example.AuthenticationService.service.JwtService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
 
 import java.util.Map;
 
@@ -25,51 +19,79 @@ import java.util.Map;
 @Tag(name = "Authentication Management", description = "APIs for handling authentication, token validation, and user details")
 public class AuthenticationServiceController {
 
-    @Autowired
     private final AuthenticationService authenticationService;
-    @Autowired
     private final JwtService jwtService;
+    private final RestTemplate restTemplate;
 
-    public AuthenticationServiceController(AuthenticationService authenticationService, JwtService jwtService) {
+    @Autowired
+    public AuthenticationServiceController(AuthenticationService authenticationService,
+                                           JwtService jwtService,
+                                           RestTemplate restTemplate) { // Autowire RestTemplate
         this.authenticationService = authenticationService;
         this.jwtService = jwtService;
+        this.restTemplate = restTemplate;
     }
 
     @GetMapping("/grantcode")
     public String grantCode(@RequestParam(value = "code") String code) {
         try {
-            // Call authenticationHandler to get the JWT and UserDTO
             Map<String, Object> authResponse = authenticationService.authenticationHandler(code);
 
-            // Extract JWT and UserDTO
             String jwtToken = (String) authResponse.get("jwtToken");
             UserDTO userDto = (UserDTO) authResponse.get("userDto");
 
+            System.out.println("JWT Token: " + jwtToken);
+            System.out.println("UserDTO1: " + userDto);
 
-            // Send the UserDTO to the UserManagementService
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            headers.set("Authorization", "Bearer " + jwtToken);
+            System.out.println("Authorization Header: " + headers.get("Authorization"));
 
             HttpEntity<UserDTO> requestEntity = new HttpEntity<>(userDto, headers);
+            System.out.println("ENTITY MADE");
+            System.out.println("UserDTO2: " + userDto);
+
+            String userManagementUrl = "http://user-management-service:8084/users/createuser";
+
             RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<UserDTO> userManagementResponse = restTemplate.exchange(
+                    userManagementUrl,
+                    HttpMethod.POST,
+                    requestEntity,
+                    UserDTO.class
+            );
 
-//            ResponseEntity<?> userManagementResponse = restTemplate.exchange(
-//                    userManagementMicroservices,
-//                    HttpMethod.POST,
-//                    requestEntity,
-//                    Object.class // Replace with the expected response type
-//            );
+            System.out.println("UserDTO3: "+ requestEntity.getBody());
+            System.out.println(userManagementResponse);
+            System.out.println("SENT");
+            System.out.println("UserDTO4: " + userDto);
 
-            return jwtToken;
+            if (userManagementResponse.getStatusCode().is2xxSuccessful()) {
+                return jwtToken;
+            } else {
+                throw new RuntimeException("Failed to create user in UserManagement service");
+            }
         } catch (RestClientException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error occurred during grant code processing: " + e.getMessage());
         }
     }
 
+
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshJwtToken(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> refreshToken() {
         try {
-            Map<String, String> response = authenticationService.handleTokenRefresh(authHeader);
+            Map<String, String> response = authenticationService.handleTokenRefresh();
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
+    @PostMapping("/refreshJWT")
+    public ResponseEntity<?> refreshJwtToken() {
+        try {
+            Map<String, String> response = authenticationService.handleJWTTokenRefresh();
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -84,6 +106,21 @@ public class AuthenticationServiceController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteUser(@RequestParam("email") String email) {
+        try {
+            authenticationService.removeUserByEmail(email);
+
+            return ResponseEntity.ok("User with email " + email + " has been removed successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    @GetMapping("/ping")
+    public String ping() {
+        return "Pong";
     }
 
 }

@@ -73,8 +73,6 @@ public class BookingController {
         // Fetch all available tours
         System.out.println(tourId);
         List<Tour> availableTours = tourManagementClient.getNonFullTours();
-        System.out.println("Got all tours");
-        //Check if the requested tour is available
         boolean tourAvailable = availableTours.stream()
                 .anyMatch(tour -> tour.getTourId() == tourId);
         if(tourAvailable) {
@@ -115,21 +113,20 @@ public class BookingController {
                     @ApiResponse(responseCode = "400", description = "Booking is already cancelled or does not exist")
             }
     )
-
-    // New endpoint to cancel a booking
     @PutMapping("/bookings/{bookingId}/cancel")
     public ResponseEntity<String> cancelBooking(@PathVariable int bookingId) {
         boolean isCancelled = bookingService.cancelBooking(bookingId);
 
         if (isCancelled) {
-            tourManagementClient.notifyCancellation(bookingService.findBookingById(bookingId));
+//            tourManagementClient.notifyCancellation(bookingService.findBookingById(bookingId));
             return ResponseEntity.ok("Booking with ID " + bookingId + " has been cancelled.");
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Booking with ID " + bookingId + " is already cancelled or does not exist.");
         }
     }
-
-
-
+    @GetMapping("/ping")
+    public String ping() {
+        return "Pong"; // A simple response to indicate the service is up
+    }
 }

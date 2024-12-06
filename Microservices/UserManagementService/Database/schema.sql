@@ -1,5 +1,5 @@
 USE UserManagementDB;
-CREATE TABLE User
+CREATE TABLE IF NOT EXISTS user
 (
     email         VARCHAR(255) PRIMARY KEY,
     given_name    VARCHAR(255) NOT NULL,

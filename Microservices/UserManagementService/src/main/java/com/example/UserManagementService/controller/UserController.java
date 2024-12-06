@@ -3,6 +3,7 @@ package com.example.UserManagementService.controller;
 import com.example.UserManagementService.dto.CreateUserRequest;
 import com.example.UserManagementService.dto.UserDTO;
 import com.example.UserManagementService.entity.UserEntity;
+import com.example.UserManagementService.repository.UserManagementRepository;
 import com.example.UserManagementService.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,8 +12,12 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -20,10 +25,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserManagementRepository userManagementRepository;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserManagementRepository userManagementRepository) {
         this.userService = userService;
+        this.userManagementRepository = userManagementRepository;
     }
 
     @Operation(
@@ -37,10 +44,18 @@ public class UserController {
             }
     )
     @PostMapping("/createuser")
-    public ResponseEntity<?> createUser(@RequestBody CreateUserRequest request) {
-        UserEntity user = userService.createUser(request.getGivenName(), request.getFamilyName(), request.getEmail());
-        return ResponseEntity.ok(user);
+    public UserDTO createUser(@RequestBody UserDTO user) {
+        System.out.println((user.toString()));
+        return user;
     }
+
+    @GetMapping("/ping")
+    public String ping() {
+        return "Pong"; // A simple response to indicate the service is up
+    }
+
+
+
 
     @Operation(
             summary = "Update user name",
