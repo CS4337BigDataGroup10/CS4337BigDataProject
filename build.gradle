@@ -81,4 +81,3 @@ allprojects {
         jvmArgs '-Dnet.bytebuddy.experimental=true'
     }
 
-}
