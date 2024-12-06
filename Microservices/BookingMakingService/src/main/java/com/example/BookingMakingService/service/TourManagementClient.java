@@ -23,9 +23,10 @@ public class TourManagementClient {
     public TourManagementClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
+
     //may need to change the url to the correct name when we implement eureka server.
     public List<Tour> getNonFullTours() {
-        String url = "http://tour-management-service/api/tours/available"; // This is the end point of the tour management service to see what tours are available. It checks any tour less than 20
+        String url = "http://tour-management-service/tours/available"; // This is the end point of the tour management service to see what tours are available. It checks any tour less than 20
         ResponseEntity<List<Tour>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -42,9 +43,9 @@ public class TourManagementClient {
     }
 
     // Notify the tour management service about a booking cancellation
-    public ResponseEntity<String> notifyCancellation(Booking booking) {
+    public void notifyCancellation(Booking booking) {
         BookingNotificationDTO notificationDto = createNotificationDTO(booking);
-        return sendNotification(notificationDto, true); // true for booking removal
+        sendNotification(notificationDto, true);
     }
 
     // Helper method to create a BookingNotificationDTO from a Booking
@@ -58,9 +59,10 @@ public class TourManagementClient {
     // Send notification for either booking or cancellation
     public ResponseEntity<String> sendNotification(BookingNotificationDTO notificationDto, boolean isCancellation) {
         String url = isCancellation
-                ? "http://tour-management-service/api/tours/" + notificationDto.getTourId() + "/removeBooking"
-                : "http://tour-management-service/api/tours/" + notificationDto.getTourId() + "/addBooking";
-
+                ? "http://tour-management-service/tours/" + notificationDto.getTourId() + "/removeBooking"
+                : "http://tour-management-service/tours/" + notificationDto.getTourId() + "/addBooking";
+        System.out.println(isCancellation);
+        System.out.println("Im trying but no worky");
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
         HttpEntity<BookingNotificationDTO> request = new HttpEntity<>(notificationDto, headers);
