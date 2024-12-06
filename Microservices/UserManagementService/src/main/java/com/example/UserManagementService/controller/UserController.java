@@ -125,15 +125,4 @@ public class UserController {
         return ResponseEntity.ok(isTourGuide);
     }
 
-    @Operation(
-            summary = "Ping",
-            description = "Ping endpoint to check service health",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Ping successful")
-            }
-    )
-    @GetMapping("/ping")
-    public String ping() {
-        return "Hello";
-    }
 }

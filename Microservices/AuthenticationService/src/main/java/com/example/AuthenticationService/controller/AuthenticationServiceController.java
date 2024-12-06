@@ -35,14 +35,6 @@ public class AuthenticationServiceController {
         this.jwtService = jwtService;
     }
 
-    @Operation(
-            summary = "Grant code and retrieve JWT",
-            description = "Accepts an authorization code, handles authentication, and returns a JWT token",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "JWT token successfully generated"),
-                    @ApiResponse(responseCode = "500", description = "Error during authentication processing")
-            }
-    )
     @GetMapping("/grantcode")
     public String grantCode(@RequestParam(value = "code") String code) {
         try {
@@ -74,33 +66,16 @@ public class AuthenticationServiceController {
         }
     }
 
-    @Operation(
-            summary = "Validate JWT token",
-            description = "Validates a provided JWT token and checks its authenticity",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Token is valid"),
-                    @ApiResponse(responseCode = "401", description = "Token is invalid or expired")
-            }
-    )
-    @PostMapping("/validate")
-    public ResponseEntity<?> validateToken(@RequestParam("token") String token) {
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshJwtToken(@RequestHeader("Authorization") String authHeader) {
         try {
-            jwtService.validateToken(token);
-            return ResponseEntity.ok("Token is valid.");
+            Map<String, String> response = authenticationService.handleTokenRefresh(authHeader);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Token: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 
-    @Operation(
-            summary = "Get user details by email",
-            description = "Retrieves user details from the database using the provided email",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "User details retrieved successfully",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserEntity.class))),
-                    @ApiResponse(responseCode = "404", description = "User not found in the database")
-            }
-    )
     @GetMapping("/user")
     public ResponseEntity<?> getUserDetails(@RequestParam("email") String email) {
         try {
@@ -110,4 +85,5 @@ public class AuthenticationServiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());
         }
     }
+
 }
