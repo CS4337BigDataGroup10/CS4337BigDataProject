@@ -97,7 +97,6 @@ class UserControllerTest {
         userDTO.setEmail("john.doe@example.com");
         userDTO.setGivenName("John");
         userDTO.setFamilyName("Doe");
-        userDTO.setProfilePicture("http://example.com/profile.jpg");
         userDTO.setTourGuide(false);
 
         UserEntity userEntity = new UserEntity(

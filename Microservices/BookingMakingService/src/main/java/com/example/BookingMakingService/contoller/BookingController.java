@@ -104,5 +104,8 @@ public class BookingController {
                     .body("Booking with ID " + booking.getBookingId() + " is already cancelled or does not exist.");
         }
     }
-
+    @GetMapping("/ping")
+    public String ping() {
+        return "Pong"; // A simple response to indicate the service is up
+    }
 }

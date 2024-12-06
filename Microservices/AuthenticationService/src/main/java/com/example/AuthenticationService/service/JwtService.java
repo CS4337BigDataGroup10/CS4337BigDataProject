@@ -18,11 +18,24 @@ public class JwtService {
         this.JwtSecret = Keys.hmacShaKeyFor(googleClientSecret.getBytes());
     }
 
+    public String extractSubject(String jwt) {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(JwtSecret) // Set the secret key to verify the signature
+                    .parseClaimsJws(jwt)
+                    .getBody();
+
+            return claims.getSubject();
+        } catch (SignatureException e) {
+            throw new RuntimeException("Invalid JWT signature", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error while parsing the JWT", e);
+        }
+    }
+
     public String generateToken(String email) {
-        // Define the token expiration time (1 hour in milliseconds)
         long oneHourInMillis = 60 * 60 * 1000;
 
-        // Generate the token
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())

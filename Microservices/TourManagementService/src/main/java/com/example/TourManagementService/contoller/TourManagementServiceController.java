@@ -144,5 +144,9 @@ public class TourManagementServiceController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @GetMapping("/ping")
+    public String ping() {
+        return "Pong"; // A simple response to indicate the service is up
+    }
 
 }

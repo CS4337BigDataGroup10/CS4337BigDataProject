@@ -1,15 +1,20 @@
 package com.example.AuthenticationService.dto;
 
-public class UserDTO {
-    private String email;
-    private String givenName;
-    private String familyName;
-    private boolean isTourGuide;  // Corresponds to the 'is_tour_guide' column in the schema
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    // Default constructor
+public class UserDTO {
+    @JsonProperty("email")
+    private String email;
+    @JsonProperty("givenName")
+    private String givenName;
+    @JsonProperty("familyName")
+    private String familyName;
+    @JsonProperty("isTourGuide")
+    private boolean isTourGuide;
+
     public UserDTO() {}
 
-    public UserDTO(String email, String givenName, String familyName, boolean isTourGuide) {
+    public UserDTO(String email, String givenName, String familyName,  Boolean isTourGuide) {
         this.email = email;
         this.givenName = givenName;
         this.familyName = familyName;
@@ -40,15 +45,17 @@ public class UserDTO {
         this.familyName = familyName;
     }
 
+
+
+    public void setTourGuide(boolean tourGuide) {
+        isTourGuide = tourGuide;
+    }
+
     public boolean isTourGuide() {
         return isTourGuide;
     }
 
-    public void setTourGuide(boolean isTourGuide) {
-        this.isTourGuide = isTourGuide;
-    }
 
-    // Optional: toString method
     @Override
     public String toString() {
         return "UserDTO{" +
@@ -58,4 +65,5 @@ public class UserDTO {
                 ", isTourGuide=" + isTourGuide +
                 '}';
     }
+
 }

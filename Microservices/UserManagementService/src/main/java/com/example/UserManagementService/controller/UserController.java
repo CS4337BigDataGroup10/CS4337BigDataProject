@@ -44,11 +44,15 @@ public class UserController {
             }
     )
     @PostMapping("/createuser")
-    public String createUser(@RequestBody RequestBody userDto) {
-        System.out.println(userDto.toString());
-       return userDto.toString();
+    public UserDTO createUser(@RequestBody UserDTO user) {
+        System.out.println((user.toString()));
+        return user;
     }
 
+    @GetMapping("/ping")
+    public String ping() {
+        return "Pong"; // A simple response to indicate the service is up
+    }
 
 
 
