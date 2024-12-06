@@ -1,20 +1,25 @@
 package com.example.AuthenticationService.exceptions;
 
-public class TokenExpiredException extends Exception {
-    private final String errorMessage;
+public class TokenExpiredException extends RuntimeException {
     private final String errorCode;
+    private final String message;
 
-    public TokenExpiredException() {
-        this.errorMessage = "Token has expired";
+    public TokenExpiredException(String message) {
         this.errorCode = "TOKEN_EXPIRED";
+        this.message = message;
     }
 
-    public TokenExpiredException(String message, String errorCode) {
-        this.errorMessage = message;
-        this.errorCode = errorCode;
+    public TokenExpiredException() {
+        this.errorCode = "TOKEN_EXPIRED";
+        this.message = "Token is expired";
+    }
+
+    @Override
+    public String getMessage() {
+        return this.message;
     }
 
     public String getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 }

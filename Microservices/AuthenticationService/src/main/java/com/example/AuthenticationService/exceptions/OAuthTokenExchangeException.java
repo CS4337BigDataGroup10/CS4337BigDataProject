@@ -1,37 +1,30 @@
 package com.example.AuthenticationService.exceptions;
 
-public class OAuthTokenExchangeException extends Exception {
-    private final String message;
+public class OAuthTokenExchangeException extends RuntimeException {
     private final String errorCode;
-    private final Throwable cause;
+    private final String message;
 
     public OAuthTokenExchangeException() {
-        this.message = "OAuth Token Exchange Failed";
         this.errorCode = "OAUTH_TOKEN_EXCHANGE_FAILED";
-        this.cause = null;
+        this.message = "OAuth Token Exchange Failed";
     }
 
     public OAuthTokenExchangeException(String message) {
-        this.message = message;
         this.errorCode = "OAUTH_TOKEN_EXCHANGE_FAILED";
-        this.cause = null;
+        this.message = message;
     }
 
     public OAuthTokenExchangeException(String message, Throwable cause) {
-        this.message = message;
         this.errorCode = "OAUTH_TOKEN_EXCHANGE_FAILED";
-        this.cause = cause;
+        this.message = message + " | Cause: " + (cause != null ? cause.getMessage() : "Unknown");
     }
 
+    @Override
     public String getMessage() {
-        return message;
+        return this.message;
     }
 
     public String getErrorCode() {
-        return errorCode;
-    }
-
-    public Throwable getCause() {
-        return cause;
+        return this.errorCode;
     }
 }

@@ -1,20 +1,20 @@
 package com.example.AuthenticationService.exceptions;
 
-public class UserNotFoundException extends Exception {
-    private final String message;
+public class UserNotFoundException extends RuntimeException {
     private final String errorCode;
+    private final String message;
 
     public UserNotFoundException(String message) {
-        this.message = message;
         this.errorCode = "USER_NOT_FOUND";
+        this.message = message;
     }
 
+    @Override
     public String getMessage() {
-        return message;
+        return this.message;
     }
 
     public String getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 }
-

@@ -46,11 +46,12 @@ public class AuthenticationService {
     }
 
     public Map<String, Object> authenticationHandler(String code) throws Exception {
+        if (code == null || code.isEmpty()) {
+            throw new OAuthTokenExchangeException("Code is missing or invalid.");
+        }
         oAuthResponse oAuthResponse = codeExchangeFromOauth(code);
         if (oAuthResponse == null) {
-            throw new AuthenticationFailedException(
-                    "Failed to obtain access token from OAuth. Authorization code may be invalid or expired."
-            );
+            throw new OAuthTokenExchangeException("Failed to obtain access token from OAuth. Authorization code may be invalid or expired.");
         }
 
         String oAuthToken = oAuthResponse.getAccess_token();
@@ -77,17 +78,25 @@ public class AuthenticationService {
     }
 
     public UserEntity checkIfUserExistsInDB(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new UserNotFoundException("Email cannot be null or empty.");
+        }
+        // Look for the user in the database
         return userRepository.findByEmail(email)
                 .map(user -> {
-                    // If user exists, check if the refresh token is expired
-                    try {
-                        checkIfRefreshTokenIsExpired(email);
-                    } catch (UserNotFoundException e) {
-                        System.out.println(e.getMessage());
-                    }
+                    // If user exists, validate the refresh token
+                    validateRefreshToken(user);
                     return user; // Return the existing user
                 })
-                .orElseGet(() -> createNewUserInDB(email)); // If user doesn't exist, create a new user
+                .orElseGet(() -> createNewUserInDB(email));
+    }
+
+    private void validateRefreshToken(UserEntity user) {
+        try {
+            checkIfRefreshTokenIsExpired(user.getEmail());
+        } catch (TokenExpiredException e) {
+            System.out.println("Token for user " + user.getEmail() + " is expired: " + e.getMessage());
+        }
     }
 
     private UserEntity createNewUserInDB(String email) {
@@ -120,13 +129,10 @@ public class AuthenticationService {
         System.out.println("Refresh token has been updated.");
     }
 
-
-
     public Map<String, String> handleTokenRefresh(String authHeader) throws Exception {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new TokenMissingException("Missing or invalid Authorization header.");
         }
-
         String jwtToken = authHeader.substring(7); // Remove "Bearer " prefix
 
         // Validate the JWT token
@@ -136,18 +142,16 @@ public class AuthenticationService {
             email = claims.getSubject(); // Extract the email (subject) from the token
         } catch (JwtException e) {
             if (e.getMessage().contains("expired")) {
-                throw new TokenExpiredException();
+                throw new TokenExpiredException("JWT token has expired.");
             } else {
-                throw new TokenInvalidException();
+                throw new TokenInvalidException("JWT token is invalid.");
             }
         } catch (IllegalArgumentException e) {
-            throw new TokenMissingException();
+            throw new TokenMissingException("JWT token is missing or malformed.");
         }
 
-        // Retrieve the user from the database
         UserEntity user = checkIfUserExistsInDB(email);
 
-        // Check if the refresh token is expired
         if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
             // Generate a new refresh token and update it in the database
             generateNewRefreshToken(user);

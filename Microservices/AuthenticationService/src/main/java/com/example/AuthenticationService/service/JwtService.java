@@ -52,6 +52,4 @@ public class JwtService {
             throw new TokenMissingException();
         }
     }
-
-
 }
