@@ -6,6 +6,7 @@ import com.example.TourManagementService.entity.TourBookings;
 import com.example.TourManagementService.exceptions.*;
 import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.repository.TourRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,9 +18,11 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 
 @Service
+@Transactional
 public class TourService {
-
+    @Autowired
     private final TourRepository tourRepository;
+    @Autowired
     private final TourBookingsRepository tourBookingsRepository;
     private final RestTemplate restTemplate;
 

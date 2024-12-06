@@ -5,13 +5,17 @@ import com.example.BookingMakingService.exceptions.BookingExceptions;
 import com.example.BookingMakingService.repository.BookingRepository;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
+
 import java.util.Optional;
 
 @Service
+@Transactional
 public class BookingService {
+    @Autowired
     private final BookingRepository bookingRepository;
     private Logger log;
 
@@ -19,7 +23,6 @@ public class BookingService {
     public BookingService(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
     }
-
     //this is querying my bookingrepositroy db to get all the bookings
     public String getAllBookings() {
         return bookingRepository.findAll().toString();
@@ -29,10 +32,10 @@ public class BookingService {
     public String getBookingsByEmailId(String emailId) {
         return bookingRepository.findByEmailId(emailId).toString();
     }
-
     //this is saving the booking to the db
-//.save() is a JpaRepository method that is used to save the booking to the database.
-    @Transactional
+    //.save() is a JpaRepository method that is used to save the booking to the database.
+    public Booking findBookingById(int bookingId){return bookingRepository.findById(bookingId).get();}
+
     public Booking createBooking(Booking booking) {
         if (bookingRepository.existsByTourIdAndEmailId(booking.getTourId(), booking.getEmailId())) {
             throw new IllegalArgumentException("Booking already exists for this user and tour.");
@@ -56,4 +59,3 @@ public class BookingService {
         return false;
     }
 }
-
