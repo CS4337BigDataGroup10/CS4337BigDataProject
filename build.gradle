@@ -13,7 +13,7 @@ allprojects {
     }
 }
 
-
+subprojects {
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'java'
@@ -26,25 +26,12 @@ allprojects {
     }
 
     dependencies {
-        // Spring Web for RestTemplate
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-
-        // Eureka Client for service discovery
-        implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-
-        // Optional: Spring Boot Actuator for health checks
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-
-        // Test dependencies
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-        implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0' // For newer Jakarta Servlet API
-        implementation 'org.springframework.boot:spring-boot-starter-web'
         // Spring Boot dependencies
         implementation 'org.springframework.boot:spring-boot-starter'
         implementation 'org.springframework.boot:spring-boot-starter-web'
         implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 
         // Eureka Client for service discovery
         implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
@@ -69,6 +56,7 @@ allprojects {
         implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
         implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 
+
     }
 
     java {
@@ -80,4 +68,4 @@ allprojects {
         useJUnitPlatform()
         jvmArgs '-Dnet.bytebuddy.experimental=true'
     }
-
+}
