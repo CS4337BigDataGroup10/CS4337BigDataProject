@@ -2,12 +2,9 @@ package com.example.AuthenticationService.controller;
 
 import com.example.AuthenticationService.dto.UserDTO;
 import com.example.AuthenticationService.entity.UserEntity;
+import com.example.AuthenticationService.exceptions.OAuthTokenExchangeException;
 import com.example.AuthenticationService.service.AuthenticationService;
 import com.example.AuthenticationService.service.JwtService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -36,7 +33,7 @@ public class AuthenticationServiceController {
     }
 
     @GetMapping("/grantcode")
-    public String grantCode(@RequestParam(value = "code") String code) {
+    public String grantCode(@RequestParam(value = "code") String code) throws Exception {
         try {
             // Call authenticationHandler to get the JWT and UserDTO
             Map<String, Object> authResponse = authenticationService.authenticationHandler(code);
@@ -63,6 +60,8 @@ public class AuthenticationServiceController {
             return jwtToken;
         } catch (RestClientException e) {
             throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new OAuthTokenExchangeException();
         }
     }
 
@@ -73,6 +72,8 @@ public class AuthenticationServiceController {
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Token not found: " + e.getMessage());
         }
     }
 

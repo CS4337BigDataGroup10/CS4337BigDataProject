@@ -1,18 +1,16 @@
 package com.example.AuthenticationService.service;
 
-import com.example.AuthenticationService.Objects.oAuthUser;
 import com.example.AuthenticationService.Objects.oAuthResponse;
+import com.example.AuthenticationService.Objects.oAuthUser;
 import com.example.AuthenticationService.dto.UserDTO;
 import com.example.AuthenticationService.entity.UserEntity;
-import com.example.AuthenticationService.exceptions.AuthenticationServiceExceptions;
-import com.example.AuthenticationService.exceptions.JwtServiceExceptions;
+import com.example.AuthenticationService.exceptions.*;
 import com.example.AuthenticationService.repository.UserRepository;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -47,10 +45,10 @@ public class AuthenticationService {
         this.jwtService = jwtService;
     }
 
-    public Map<String, Object> authenticationHandler(String code) {
+    public Map<String, Object> authenticationHandler(String code) throws Exception {
         oAuthResponse oAuthResponse = codeExchangeFromOauth(code);
         if (oAuthResponse == null) {
-            throw new AuthenticationServiceExceptions.AuthenticationFailedException(
+            throw new AuthenticationFailedException(
                     "Failed to obtain access token from OAuth. Authorization code may be invalid or expired."
             );
         }
@@ -82,7 +80,11 @@ public class AuthenticationService {
         return userRepository.findByEmail(email)
                 .map(user -> {
                     // If user exists, check if the refresh token is expired
-                    checkIfRefreshTokenIsExpired(email);
+                    try {
+                        checkIfRefreshTokenIsExpired(email);
+                    } catch (UserNotFoundException e) {
+                        System.out.println(e.getMessage());
+                    }
                     return user; // Return the existing user
                 })
                 .orElseGet(() -> createNewUserInDB(email)); // If user doesn't exist, create a new user
@@ -96,9 +98,9 @@ public class AuthenticationService {
         return userRepository.save(user); // Return the saved user
     }
 
-    public void checkIfRefreshTokenIsExpired(String email) {
+    public void checkIfRefreshTokenIsExpired(String email) throws UserNotFoundException {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AuthenticationServiceExceptions.UserNotFoundException(
+                .orElseThrow(() -> new UserNotFoundException(
                         "User with email '" + email + "' not found in the database."
                 ));
 
@@ -106,6 +108,7 @@ public class AuthenticationService {
             generateNewRefreshToken(user);
         }
     }
+
 
     private void generateNewRefreshToken(UserEntity user) {
         String newRefreshToken = UUID.randomUUID().toString();
@@ -119,9 +122,9 @@ public class AuthenticationService {
 
 
 
-    public Map<String, String> handleTokenRefresh(String authHeader) {
+    public Map<String, String> handleTokenRefresh(String authHeader) throws Exception {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("Missing or invalid Authorization header.");
+            throw new TokenMissingException("Missing or invalid Authorization header.");
         }
 
         String jwtToken = authHeader.substring(7); // Remove "Bearer " prefix
@@ -131,10 +134,14 @@ public class AuthenticationService {
         try {
             Claims claims = jwtService.validateToken(jwtToken);
             email = claims.getSubject(); // Extract the email (subject) from the token
-        } catch (JwtServiceExceptions.TokenExpiredException e) {
-            throw new RuntimeException("JWT token has expired.");
-        } catch (JwtServiceExceptions.InvalidTokenException e) {
-            throw new RuntimeException("Invalid JWT token.");
+        } catch (JwtException e) {
+            if (e.getMessage().contains("expired")) {
+                throw new TokenExpiredException();
+            } else {
+                throw new TokenInvalidException();
+            }
+        } catch (IllegalArgumentException e) {
+            throw new TokenMissingException();
         }
 
         // Retrieve the user from the database
@@ -156,7 +163,7 @@ public class AuthenticationService {
         return response;
     }
 
-    public oAuthResponse codeExchangeFromOauth(String code) {
+    public oAuthResponse codeExchangeFromOauth(String code) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -175,7 +182,7 @@ public class AuthenticationService {
             String url = "https://oauth2.googleapis.com/token";
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new AuthenticationServiceExceptions.OAuthTokenExchangeException(
+                throw new OAuthTokenExchangeException(
                         "Failed to exchange authorization code for access token. HTTP Status: " + response.getStatusCode()
                 );
             }
@@ -183,11 +190,11 @@ public class AuthenticationService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             return objectMapper.treeToValue(jsonNode, oAuthResponse.class);
         } catch (Exception e) {
-            throw new AuthenticationServiceExceptions.OAuthTokenExchangeException("Error during token exchange", e);
+            throw new OAuthTokenExchangeException("Error during token exchange", e);
         }
     }
 
-    public oAuthUser getProfileDetailsGoogle(String accessToken) {
+    public oAuthUser getProfileDetailsGoogle(String accessToken) throws UserProfileRetrievalException {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setBearerAuth(accessToken);
@@ -200,7 +207,7 @@ public class AuthenticationService {
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response.getBody(), oAuthUser.class);
         } catch (JsonProcessingException e) {
-            throw new AuthenticationServiceExceptions.UserProfileRetrievalException(
+            throw new UserProfileRetrievalException(
                     "Failed to retrieve user profile details from Google", e
             );
         }

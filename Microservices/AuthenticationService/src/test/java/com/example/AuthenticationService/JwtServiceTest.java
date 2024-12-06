@@ -1,6 +1,7 @@
 package com.example.AuthenticationService;
 
-import com.example.AuthenticationService.exceptions.JwtServiceExceptions;
+import com.example.AuthenticationService.exceptions.TokenExpiredException;
+import com.example.AuthenticationService.exceptions.TokenInvalidException;
 import com.example.AuthenticationService.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -12,8 +13,8 @@ import org.junit.jupiter.api.Test;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JwtServiceTest {
 
@@ -28,7 +29,7 @@ public class JwtServiceTest {
     }
 
     @Test
-    void testValidateToken_ValidToken() {
+    void testValidateToken_ValidToken() throws Exception {
         // Arrange: Create a valid token
         String email = "test@example.com";
         String token = Jwts.builder()
@@ -55,7 +56,7 @@ public class JwtServiceTest {
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
 
-        assertThrows(JwtServiceExceptions.TokenExpiredException.class, () -> jwtService.validateToken(token));
+        assertThrows(TokenExpiredException.class, () -> jwtService.validateToken(token));
     }
 
     @Test
@@ -63,6 +64,6 @@ public class JwtServiceTest {
         // Arrange: Create a malformed/invalid token
         String token = "invalid.token.string";
 
-        assertThrows(JwtServiceExceptions.InvalidTokenException.class, () -> jwtService.validateToken(token));
+        assertThrows(TokenInvalidException.class, () -> jwtService.validateToken(token));
     }
 }
