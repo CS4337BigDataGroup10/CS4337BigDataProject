@@ -2,6 +2,7 @@ package com.example.TourManagementService.contoller;
 
 import com.example.TourManagementService.dto.BookingNotificationDTO;
 import com.example.TourManagementService.entity.Tour;
+import com.example.TourManagementService.service.TourScheduler;
 import com.example.TourManagementService.service.TourService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +22,11 @@ import java.util.List;
 public class TourManagementServiceController {
 
     private final TourService tourService;
+    private final TourScheduler ts;
 
-    public TourManagementServiceController(TourService tourService) {
+    public TourManagementServiceController(TourService tourService, TourScheduler ts) {
         this.tourService = tourService;
+        this.ts = ts;
     }
 
     @Operation(
@@ -35,9 +39,17 @@ public class TourManagementServiceController {
     )
     @GetMapping("/available")
     public ResponseEntity<List<Tour>> getAvailableTours() {
-        List<Tour> availableTours = tourService.getAvailableTours();
-        return ResponseEntity.ok(availableTours);
+        System.out.println("Request received for available tours");
+        try {
+            List<Tour> availableTours = tourService.getAvailableTours();
+            System.out.println("Available Tours: " + availableTours);
+            return ResponseEntity.ok(availableTours);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
+
 
     @Operation(
             summary = "Get tour details",
@@ -102,9 +114,10 @@ public class TourManagementServiceController {
             }
     )
     @PostMapping("/create")
-    public ResponseEntity<Tour> createTour(@RequestBody Tour tour) {
-        Tour savedTour = tourService.createTour(tour);
-        return ResponseEntity.ok(savedTour);
+    public void createTour() {
+        ts.createDailyTours();
+        //Tour savedTour = tourService.createTour(tour);
+        //return ResponseEntity.ok(savedTour);
     }
 
     @Operation(

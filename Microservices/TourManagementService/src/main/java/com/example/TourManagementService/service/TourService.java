@@ -22,7 +22,7 @@ public class TourService {
     private final TourRepository tourRepository;
     private final TourBookingsRepository tourBookingsRepository;
     private final RestTemplate restTemplate;
-
+    
     public TourService(TourRepository tourRepository, TourBookingsRepository tourBookingsRepository, RestTemplate restTemplate) {
         this.tourRepository = tourRepository;
         this.restTemplate = restTemplate;
@@ -30,11 +30,13 @@ public class TourService {
     }
 
     public List<Tour> getAvailableTours() {
+
         return tourRepository.findAvailableTours();
     }
 
     // Method to fetch a tour by ID
     public Tour getTourById(int tourId) {
+        System.out.print("gettourbyid");
         return tourRepository.findById(tourId)
                 .orElseThrow(() -> new TourNotFoundException("Tour not found with ID: " + tourId));
     }

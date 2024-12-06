@@ -31,10 +31,18 @@ subprojects {
 
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 		testImplementation 'com.h2database:h2:2.1.214'
+	
+    	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 
 		// SwaggerAPI
 		implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 	}
+	dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.4" // Compatible with Spring Boot 3.x
+   		}
+	}
+
 	tasks.bootJar {
 		mainClassName = 'com.example.TourManagementService.TourManagementServiceApplication'
 	}

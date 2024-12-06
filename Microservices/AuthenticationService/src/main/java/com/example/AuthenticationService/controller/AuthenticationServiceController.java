@@ -77,7 +77,7 @@ public class AuthenticationServiceController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> getUserDetails(@RequestParam("email") String email) {
+    public ResponseEntity<?> getUserDetails(String email) {
         try {
             UserEntity user = authenticationService.checkIfUserExistsInDB(email);
             return ResponseEntity.ok(user);
@@ -85,5 +85,4 @@ public class AuthenticationServiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + e.getMessage());
         }
     }
-
 }

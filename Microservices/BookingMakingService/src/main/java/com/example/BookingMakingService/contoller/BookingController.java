@@ -3,6 +3,7 @@ package com.example.BookingMakingService.contoller;
 import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.entity.Tour;
 import com.example.BookingMakingService.service.BookingService;
+import com.example.BookingMakingService.service.JwtServiceClient;
 import com.example.BookingMakingService.service.TourManagementClient;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
 
 import java.util.List;
 
@@ -22,10 +24,11 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final TourManagementClient tourManagementClient;
-
-    public BookingController(BookingService bookingService, TourManagementClient tourManagementClient) {
+    private final JwtServiceClient jwtServiceClient;
+    public BookingController(BookingService bookingService, TourManagementClient tourManagementClient, JwtServiceClient jwtServiceClient) {
         this.bookingService = bookingService;
         this.tourManagementClient = tourManagementClient;
+        this.jwtServiceClient = jwtServiceClient;
     }
 
     @Operation(
@@ -68,25 +71,28 @@ public class BookingController {
                     @ApiResponse(responseCode = "400", description = "Selected tour is not available")
             }
     )
-    @PostMapping
-    public ResponseEntity<String> createBooking(@RequestBody Booking booking) {
+    @PostMapping("/book/{tourId}")
+    public ResponseEntity<String> createBooking(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @PathVariable("tourId") int tourId) {
         try {
-            List<Tour> availableTours = tourManagementClient.getNonFullTours();
+            List<Tour> availableTours = tourManagementClient.getNonFullTours(authorization);
 
             boolean tourAvailable = availableTours.stream()
-                    .anyMatch(tour -> tour.getTourId() == booking.getTourId());
-
+                    .anyMatch(tour -> tour.getTourId() == tourId);
             if (!tourAvailable) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Selected tour is not available or is fully booked.");
             }
-
-            // creating the booking locally
-            Booking newBooking = bookingService.createBooking(booking);
-
+            String email = jwtServiceClient.getEmailFromJwtService(authorization);
+            // creating the booking
+            Booking newBooking = new Booking();
+            newBooking.setTourId(tourId);
+            newBooking.setEmailId(email);
+            newBooking.setCancelled(false);
+            newBooking.setBookingId(3);
+            System.out.print("Im trying to notify tour management");
             // notifying TourManagementService to update participant count
-            ResponseEntity<String> notificationResponse = tourManagementClient.notifyTourManagement(newBooking);
-
+            ResponseEntity<String> notificationResponse = tourManagementClient.notifyTourManagement(newBooking,authorization);
+            System.out.println("Response from Tour Management Service: " + notificationResponse);
             if (notificationResponse.getStatusCode() != HttpStatus.OK) {
                 // Roll back booking if TourManagementService fails
                 bookingService.cancelBooking(newBooking.getBookingId());
@@ -120,11 +126,11 @@ public class BookingController {
     )
 
     @PutMapping("/bookings/{bookingId}/cancel")
-    public ResponseEntity<String> cancelBooking(@PathVariable Booking booking) {
+    public ResponseEntity<String> cancelBooking(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,@PathVariable Booking booking) {
         boolean isCancelled = bookingService.cancelBooking(booking.getBookingId());
 
         if (isCancelled) {
-            tourManagementClient.notifyCancellation(booking);
+            tourManagementClient.notifyCancellation(booking,authorization);
             return ResponseEntity.ok("Booking with ID " + booking.getBookingId() + " has been cancelled.");
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

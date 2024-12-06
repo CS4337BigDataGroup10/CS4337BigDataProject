@@ -14,7 +14,7 @@ import java.util.Optional;
 public class BookingService {
     private final BookingRepository bookingRepository;
     private Logger log;
-
+    private static int counter = 0;
     //Constructor
     public BookingService(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
@@ -37,6 +37,8 @@ public class BookingService {
         if (bookingRepository.existsByTourIdAndEmailId(booking.getTourId(), booking.getEmailId())) {
             throw new IllegalArgumentException("Booking already exists for this user and tour.");
         }
+        counter++;
+        booking.setBookingId(counter);
         bookingRepository.save(booking);
         return booking;
     }

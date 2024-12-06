@@ -15,6 +15,7 @@ public class TourManagementServiceExceptions {
 
     @ExceptionHandler(CapacityExceededException.class)
     public ResponseEntity<String> handleCapacityExceededException(CapacityExceededException e) {
+        System.out.println("I am here ");
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

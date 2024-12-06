@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+
 
 import java.time.Duration;
 
@@ -12,6 +14,7 @@ import java.time.Duration;
 public class RestTemplateConfig {
 
     @Bean
+    @LoadBalanced
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder
                 .setConnectTimeout(Duration.ofMillis(3000)) // Connection timeout
