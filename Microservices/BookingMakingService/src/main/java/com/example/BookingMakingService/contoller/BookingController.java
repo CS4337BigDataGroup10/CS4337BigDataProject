@@ -70,18 +70,44 @@ public class BookingController {
     )
     @PostMapping
     public ResponseEntity<String> createBooking(@RequestBody Booking booking) {
-        List<Tour> availableTours = tourManagementClient.getNonFullTours();
-        boolean tourAvailable = availableTours.stream()
-                .anyMatch(tour -> tour.getTourId() == booking.getTourId());
+        try {
+            List<Tour> availableTours = tourManagementClient.getNonFullTours();
 
-        if (!tourAvailable) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Selected tour is not available.");
+            boolean tourAvailable = availableTours.stream()
+                    .anyMatch(tour -> tour.getTourId() == booking.getTourId());
+
+            if (!tourAvailable) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Selected tour is not available or is fully booked.");
+            }
+
+            // creating the booking locally
+            Booking newBooking = bookingService.createBooking(booking);
+
+            // notifying TourManagementService to update participant count
+            ResponseEntity<String> notificationResponse = tourManagementClient.notifyTourManagement(newBooking);
+
+            if (notificationResponse.getStatusCode() != HttpStatus.OK) {
+                // Roll back booking if TourManagementService fails
+                bookingService.cancelBooking(newBooking.getBookingId());
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Booking failed. Capacity validation at TourManagementService failed. Try again.");
+            }
+
+            return ResponseEntity.ok("Booking created successfully.");
+
+        } catch (IllegalStateException e) {
+            // deal with race conditions or capacity issues
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Booking failed because of concurrent requests or capacity issues. Try again.");
+        } catch (IllegalArgumentException e) {
+            // deal with invalid inputs or duplicate bookings
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            // any unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred: " + e.getMessage());
         }
-
-        Booking newBooking = bookingService.createBooking(booking);
-        tourManagementClient.notifyTourManagement(newBooking);
-        return ResponseEntity.ok("Booking created successfully and notification sent.");
     }
 
     @Operation(
@@ -92,6 +118,7 @@ public class BookingController {
                     @ApiResponse(responseCode = "400", description = "Booking is already cancelled or does not exist")
             }
     )
+
     @PutMapping("/bookings/{bookingId}/cancel")
     public ResponseEntity<String> cancelBooking(@PathVariable Booking booking) {
         boolean isCancelled = bookingService.cancelBooking(booking.getBookingId());

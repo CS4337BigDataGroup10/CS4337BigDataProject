@@ -34,7 +34,9 @@ public class BookingService {
 //.save() is a JpaRepository method that is used to save the booking to the database.
     @Transactional
     public Booking createBooking(Booking booking) {
-
+        if (bookingRepository.existsByTourIdAndEmailId(booking.getTourId(), booking.getEmailId())) {
+            throw new IllegalArgumentException("Booking already exists for this user and tour.");
+        }
         bookingRepository.save(booking);
         return booking;
     }
