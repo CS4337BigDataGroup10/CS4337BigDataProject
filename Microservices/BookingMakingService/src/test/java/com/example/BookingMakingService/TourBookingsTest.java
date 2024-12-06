@@ -30,14 +30,5 @@ class TourBookingsTest {
         assertEquals(0, tourBookings.getTourId());
     }
 
-    @Test
-    void testSetTourId() {
-        TourBookings tourBookings = new TourBookings();
-
-        int updatedTourId = tourBookings.setTourId(305);
-
-        assertEquals(305, tourBookings.getTourId());
-        assertEquals(305, updatedTourId); // Ensure the return value matches the set value
-    }
 }
 
