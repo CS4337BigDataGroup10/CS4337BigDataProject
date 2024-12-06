@@ -61,7 +61,8 @@ public class TourManagementClient {
         String url = isCancellation
                 ? "http://tour-management-service/tours/" + notificationDto.getTourId() + "/removeBooking"
                 : "http://tour-management-service/tours/" + notificationDto.getTourId() + "/addBooking";
-
+        System.out.println(isCancellation);
+        System.out.println("Im trying but no worky");
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
         HttpEntity<BookingNotificationDTO> request = new HttpEntity<>(notificationDto, headers);

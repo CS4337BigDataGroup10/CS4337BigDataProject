@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   # Eureka Server (No database)
   eureka-server:
@@ -30,9 +32,9 @@ services:
       - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 5
-      timeout: 2s
+      interval: 10s
+      retries: 10
+      timeout: 5s
 
   auth-service:
     image: auth-service
@@ -70,15 +72,17 @@ services:
       - "3307:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 5
-      timeout: 2s
+      interval: 10s
+      retries: 10
+      timeout: 5s
 
   booking-service:
     image: booking-service
     container_name: BookingService
     build:
       context: ./Microservices/BookingMakingService
+    env_file:
+      - .env
     depends_on:
       booking-db:
         condition: service_healthy
@@ -109,7 +113,7 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
-      retries: 5
+      retries: 10
       timeout: 5s
 
   tour-management-service:
@@ -117,6 +121,8 @@ services:
     container_name: TourManagementService
     build:
       context: ./Microservices/TourManagementService
+    env_file:
+      - .env
     depends_on:
       tour-db:
         condition: service_healthy
@@ -130,7 +136,6 @@ services:
       SPRING_APPLICATION_NAME: tour-management-service
       SERVER_PORT: 8083
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
-    restart: always
 
   # User Management Service
   user-db:
@@ -147,15 +152,17 @@ services:
       - "3309:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 5
-      timeout: 2s
+      interval: 10s
+      retries: 10
+      timeout: 5s
 
   user-management-service:
     image: user-management-service
     container_name: UserManagementService
     build:
       context: ./Microservices/UserManagementService
+    env_file:
+      - .env
     depends_on:
       user-db:
         condition: service_healthy
@@ -168,9 +175,8 @@ services:
     environment:
       SPRING_APPLICATION_NAME: user-management-service
       SERVER_PORT: 8084
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/  # Updated Eureka URL
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
 
 networks:
   net:
     driver: bridge
-
