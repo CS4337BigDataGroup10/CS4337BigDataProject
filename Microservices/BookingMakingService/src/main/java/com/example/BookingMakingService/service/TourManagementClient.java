@@ -57,7 +57,7 @@ public class TourManagementClient {
     }
 
     // Send notification for either booking or cancellation
-    private ResponseEntity<String> sendNotification(BookingNotificationDTO notificationDto, boolean isCancellation) {
+    public ResponseEntity<String> sendNotification(BookingNotificationDTO notificationDto, boolean isCancellation) {
         String url = isCancellation
                 ? "http://tour-management-service/tours/" + notificationDto.getTourId() + "/removeBooking"
                 : "http://tour-management-service/tours/" + notificationDto.getTourId() + "/addBooking";

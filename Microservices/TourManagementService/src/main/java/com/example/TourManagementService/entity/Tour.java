@@ -22,6 +22,9 @@ public class Tour {
     @Column(nullable = false)
     private int maxCapacity;
 
+    @Version
+    private int version; // For locking
+
     // Getters and Setters
     public int getTourId() {
         return tourId;
@@ -61,5 +64,13 @@ public class Tour {
 
     public void setMaxCapacity(int maxCapacity) {
         this.maxCapacity = maxCapacity;
+    }
+
+    public void setVersion(int i) {
+        this.version = i;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }

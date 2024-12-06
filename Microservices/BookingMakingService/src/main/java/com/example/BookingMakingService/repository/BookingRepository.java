@@ -12,4 +12,6 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
     // Custom query method to find all bookings by emailId
     List<Booking> findByEmailId(String emailId);
+    boolean existsByTourIdAndEmailId(int tourId, String emailId);
 }
+

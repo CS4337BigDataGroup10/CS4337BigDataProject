@@ -4,6 +4,12 @@ import com.example.BookingMakingService.entity.Booking;
 import com.example.BookingMakingService.entity.Tour;
 import com.example.BookingMakingService.service.BookingService;
 import com.example.BookingMakingService.service.TourManagementClient;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@Tag(name = "Booking Management", description = "APIs for managing bookings")
 @RequestMapping("/bookings")
 public class BookingController {
 
@@ -22,13 +29,28 @@ public class BookingController {
         this.tourManagementClient = tourManagementClient;
     }
 
-    @GetMapping("/currentbookings")
+    @Operation(
+            summary = "Get all bookings",
+            description = "Retrieve a list of all current bookings",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully retrieved bookings",
+                            content = @Content(mediaType = "application/json"))
+            }
+    )
+    @GetMapping("/bookings")
     public ResponseEntity<String> getAllBookings() {
         String currentBookings = bookingService.getAllBookings();
         return ResponseEntity.ok(currentBookings);
     }
 
-    // New endpoint to get bookings by emailId
+    @Operation(
+            summary = "Get bookings by email ID",
+            description = "Retrieve bookings for a specific user by their email ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully retrieved bookings"),
+                    @ApiResponse(responseCode = "404", description = "No bookings found for the specified email ID")
+            }
+    )
     @GetMapping("/email/{emailId}")
     public ResponseEntity<String> getBookingsByEmailId(@PathVariable String emailId) {
         String userBookings = bookingService.getBookingsByEmailId(emailId);
@@ -37,7 +59,15 @@ public class BookingController {
         }
         return ResponseEntity.ok(userBookings);
     }
-
+    @Operation(
+            summary = "Create a new booking",
+            description = "Create a new booking for a specified tour if the tour is available",
+            requestBody = @RequestBody(description = "Booking details", content = @Content(schema = @Schema(implementation = Booking.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Booking created successfully"),
+                    @ApiResponse(responseCode = "400", description = "Selected tour is not available")
+            }
+    )
     @PostMapping("/book/{tourId}")
     public ResponseEntity<String> createBooking(@PathVariable("tourId") int tourId) {
         // Fetch all available tours
@@ -77,6 +107,15 @@ public class BookingController {
         return ResponseEntity.ok("Booking created successfully and notification sent.");
     }
 
+    @Operation(
+            summary = "Cancel a booking",
+            description = "Cancel a booking by its ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Booking cancelled successfully"),
+                    @ApiResponse(responseCode = "400", description = "Booking is already cancelled or does not exist")
+            }
+    )
+
     // New endpoint to cancel a booking
     @PutMapping("/bookings/{bookingId}/cancel")
     public ResponseEntity<String> cancelBooking(@PathVariable int bookingId) {
@@ -90,4 +129,7 @@ public class BookingController {
                     .body("Booking with ID " + bookingId + " is already cancelled or does not exist.");
         }
     }
+
+
+
 }

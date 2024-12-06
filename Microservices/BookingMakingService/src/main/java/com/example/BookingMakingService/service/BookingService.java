@@ -1,10 +1,14 @@
 package com.example.BookingMakingService.service;
 
 import com.example.BookingMakingService.entity.Booking;
+import com.example.BookingMakingService.exceptions.BookingExceptions;
 import com.example.BookingMakingService.repository.BookingRepository;
 import jakarta.transaction.Transactional;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Objects;
 
 import java.util.Optional;
 
@@ -13,6 +17,8 @@ import java.util.Optional;
 public class BookingService {
     @Autowired
     private final BookingRepository bookingRepository;
+    private Logger log;
+
     //Constructor
     public BookingService(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
@@ -21,6 +27,7 @@ public class BookingService {
     public String getAllBookings() {
         return bookingRepository.findAll().toString();
     }
+
     // New method to get bookings by emailId
     public String getBookingsByEmailId(String emailId) {
         return bookingRepository.findByEmailId(emailId).toString();
@@ -30,12 +37,11 @@ public class BookingService {
     public Booking findBookingById(int bookingId){return bookingRepository.findById(bookingId).get();}
 
     public Booking createBooking(Booking booking) {
-        try {
-            bookingRepository.save(booking);
-            return booking;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to save booking", e);
+        if (bookingRepository.existsByTourIdAndEmailId(booking.getTourId(), booking.getEmailId())) {
+            throw new IllegalArgumentException("Booking already exists for this user and tour.");
         }
+        bookingRepository.save(booking);
+        return booking;
     }
 
     public boolean cancelBooking(int bookingId) {

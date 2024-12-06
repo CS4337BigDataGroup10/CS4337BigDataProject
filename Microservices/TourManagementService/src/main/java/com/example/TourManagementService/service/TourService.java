@@ -7,6 +7,7 @@ import com.example.TourManagementService.exceptions.*;
 import com.example.TourManagementService.repository.TourBookingsRepository;
 import com.example.TourManagementService.repository.TourRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,9 @@ public class TourService {
     }
 
     public void selfAssignToTour(int tourId, String emailId) {
+        if (emailId == null || emailId.isBlank()) {
+            throw new IllegalArgumentException("Invalid emailId: " + emailId);
+        }
         String userManagementServiceUrl = "http://USER-MANAGEMENT-SERVICE/users/" + emailId + "/isTourGuide";
         Boolean isTourGuide = restTemplate.getForObject(userManagementServiceUrl, Boolean.class);
 
@@ -50,10 +54,6 @@ public class TourService {
         if (Boolean.FALSE.equals(isTourGuide)) {
             System.err.println("isTourGuide check failed for emailId: " + emailId);
             throw new IllegalArgumentException("Only tour guides can assign themselves to a tour.");
-        }
-        if (emailId == null || emailId.isBlank()) {
-            System.err.println("Invalid emailId: " + emailId);
-            throw new IllegalArgumentException("Invalid emailId: " + emailId);
         }
 
         Tour tour = tourRepository.findById(tourId)
@@ -94,17 +94,25 @@ public class TourService {
     // Method to update participant count in a tour
     @Transactional
     public void updateParticipantCount(int tourId, int size) {
-        Tour tour = getTourById(tourId);
-        int newParticipantCount = tour.getParticipantCount() + size;
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new TourNotFoundException("Tour not found with ID: " + tourId));
 
+        int newParticipantCount = tour.getParticipantCount() + size;
         // Check if the new count exceeds the maximum capacity
-        if (newParticipantCount > 20) {
+
+        if (newParticipantCount > tour.getMaxCapacity()) {
             throw new CapacityExceededException("Cannot add booking, tour capacity exceeded.");
         }
 
         tour.setParticipantCount(newParticipantCount);
-        tourRepository.save(tour);
+
+        try {
+            tourRepository.save(tour); // JPA will check the @Version field
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("Concurrent booking. Try again.");
+        }
     }
+
     //method to remove a booking from a tour
     @Transactional
     public void removeBooking(int tourId, int bookingId) {
