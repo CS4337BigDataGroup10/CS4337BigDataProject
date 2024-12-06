@@ -42,7 +42,7 @@ public class TourManagementClientTest {
         tour1.setTourId(1);
         Tour tour2 = new Tour();
         tour2.setTourId(2);
-        String url = "http://tour-management-service/api/tours/available";
+        String url = "http://tour-management-service/tours/available";
         List<Tour> expectedTours = Arrays.asList(tour1,tour2);
         ResponseEntity<List<Tour>> responseEntity = new ResponseEntity<>(expectedTours, HttpStatus.OK);
 

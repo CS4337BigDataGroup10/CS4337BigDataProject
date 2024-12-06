@@ -43,4 +43,13 @@ public class Booking {
     public void setCancelled(boolean cancelled) {
         isCancelled = cancelled;
     }
+
+    @Override
+    public String toString(){
+        return "Booking{"+
+                "Email=" + getEmailId() + "\n"+
+                "BookingId "+ getBookingId() + "\n" +
+                "Tourname" + getTourId() + "\n" +
+                "}";
+    }
 }
