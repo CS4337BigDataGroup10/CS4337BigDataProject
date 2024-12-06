@@ -26,7 +26,7 @@ public class AuthenticationServiceController {
     @Autowired
     public AuthenticationServiceController(AuthenticationService authenticationService,
                                            JwtService jwtService,
-                                           RestTemplate restTemplate) { // Autowire RestTemplate
+                                           RestTemplate restTemplate) {
         this.authenticationService = authenticationService;
         this.jwtService = jwtService;
         this.restTemplate = restTemplate;
@@ -40,18 +40,15 @@ public class AuthenticationServiceController {
             String jwtToken = (String) authResponse.get("jwtToken");
             UserDTO userDto = (UserDTO) authResponse.get("userDto");
 
-            System.out.println("JWT Token: " + jwtToken);
-            System.out.println("UserDTO1: " + userDto);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             headers.set("Authorization", "Bearer " + jwtToken);
-            System.out.println("Authorization Header: " + headers.get("Authorization"));
+
 
             HttpEntity<UserDTO> requestEntity = new HttpEntity<>(userDto, headers);
-            System.out.println("ENTITY MADE");
-            System.out.println("UserDTO2: " + userDto);
+
 
             String userManagementUrl = "http://user-management-service:8084/users/createuser";
 
@@ -63,10 +60,6 @@ public class AuthenticationServiceController {
                     UserDTO.class
             );
 
-            System.out.println("UserDTO3: "+ requestEntity.getBody());
-            System.out.println(userManagementResponse);
-            System.out.println("SENT");
-            System.out.println("UserDTO4: " + userDto);
 
             if (userManagementResponse.getStatusCode().is2xxSuccessful()) {
                 return jwtToken;
