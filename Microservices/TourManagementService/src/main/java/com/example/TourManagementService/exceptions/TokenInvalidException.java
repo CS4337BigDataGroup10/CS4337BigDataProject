@@ -1,20 +1,25 @@
 package com.example.TourManagementService.exceptions;
 
-public class TokenInvalidException extends Exception {
-    private final String errorMessage;
+public class TokenInvalidException extends RuntimeException {
     private final String errorCode;
+    private final String message;
 
-    public TokenInvalidException() {
-        this.errorMessage = "Token is invalid";
+    public TokenInvalidException(String message) {
         this.errorCode = "TOKEN_INVALID";
+        this.message = message;
     }
 
-    public TokenInvalidException(String message, String errorCode) {
-        this.errorMessage = message;
-        this.errorCode = errorCode;
+    public TokenInvalidException() {
+        this.errorCode = "TOKEN_INVALID";
+        this.message = "Token is missing";
+    }
+
+    @Override
+    public String getMessage() {
+        return this.message;
     }
 
     public String getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 }

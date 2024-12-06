@@ -1,20 +1,25 @@
 package com.example.TourManagementService.exceptions;
 
-public class TokenMissingException extends Exception {
-    private final String errorMessage;
+public class TokenMissingException extends RuntimeException {
     private final String errorCode;
+    private final String errorMessage;
 
     public TokenMissingException() {
-        this.errorMessage = "Token is invalid";
         this.errorCode = "TOKEN_MISSING";
+        this.errorMessage = "Authorization token is missing or invalid.";
     }
 
-    public TokenMissingException(String message, String errorCode) {
+    public TokenMissingException(String message) {
+        this.errorCode = "TOKEN_MISSING";
         this.errorMessage = message;
-        this.errorCode = errorCode;
     }
 
     public String getErrorCode() {
-        return errorCode;
+        return this.errorCode;
+    }
+
+    @Override
+    public String getMessage() {
+        return this.errorMessage;
     }
 }
