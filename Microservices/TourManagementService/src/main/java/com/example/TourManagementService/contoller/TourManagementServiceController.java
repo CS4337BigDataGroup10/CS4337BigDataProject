@@ -3,7 +3,6 @@ package com.example.TourManagementService.contoller;
 import com.example.TourManagementService.dto.BookingNotificationDTO;
 import com.example.TourManagementService.entity.Tour;
 import com.example.TourManagementService.service.TourService;
-import org.springframework.http.HttpStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/tours")
@@ -147,4 +144,9 @@ public class TourManagementServiceController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @GetMapping("/ping")
+    public String ping() {
+        return "Pong"; // A simple response to indicate the service is up
+    }
+
 }

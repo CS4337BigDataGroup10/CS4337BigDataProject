@@ -2,7 +2,6 @@ package com.example.AuthenticationService.exceptions;
 
 public class JwtServiceExceptions {
 
-    // Exception for expired JWT tokens
     public static class TokenExpiredException extends RuntimeException {
         public TokenExpiredException(String message) {
             super(message);
@@ -13,7 +12,6 @@ public class JwtServiceExceptions {
         }
     }
 
-    // Exception for invalid JWT tokens
     public static class InvalidTokenException extends RuntimeException {
         public InvalidTokenException(String message) {
             super(message);

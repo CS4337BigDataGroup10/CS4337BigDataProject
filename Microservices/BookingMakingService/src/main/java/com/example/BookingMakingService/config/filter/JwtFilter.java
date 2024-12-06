@@ -35,7 +35,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 jwtService.validateToken(jwtToken);
                 // Example of setting the authentication
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken("paul", null, new ArrayList<>());
+                        new UsernamePasswordAuthenticationToken("", null, new ArrayList<>());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

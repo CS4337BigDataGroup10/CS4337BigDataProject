@@ -23,7 +23,13 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
+
 
 @Service
 public class AuthenticationService {
@@ -73,19 +79,16 @@ public class AuthenticationService {
         userDto.setEmail(OauthUser.getEmail());
         userDto.setGivenName(OauthUser.getGiven_name());
         userDto.setFamilyName(OauthUser.getFamily_name());
-        userDto.setProfilePicture(OauthUser.getPicture());
-        userDto.setRole("Customer");
         return userDto;
     }
 
     public UserEntity checkIfUserExistsInDB(String email) {
         return userRepository.findByEmail(email)
                 .map(user -> {
-                    // If user exists, check if the refresh token is expired
                     checkIfRefreshTokenIsExpired(email);
                     return user; // Return the existing user
                 })
-                .orElseGet(() -> createNewUserInDB(email)); // If user doesn't exist, create a new user
+                .orElseGet(() -> createNewUserInDB(email));
     }
 
     private UserEntity createNewUserInDB(String email) {
@@ -93,7 +96,7 @@ public class AuthenticationService {
         user.setEmail(email);
         user.setRefreshToken(UUID.randomUUID().toString());
         user.setRefreshTokenExpiry(LocalDateTime.now().plusDays(7));
-        return userRepository.save(user); // Return the saved user
+        return userRepository.save(user);
     }
 
     public void checkIfRefreshTokenIsExpired(String email) {
@@ -117,44 +120,85 @@ public class AuthenticationService {
         System.out.println("Refresh token has been updated.");
     }
 
+    public void removeUserByEmail(String email) {
+        Optional<UserEntity> user = userRepository.findByEmail(email);
 
+        if (user.isPresent()) {
+            userRepository.delete(user.get());
+        } else {
+            throw new RuntimeException("User with email " + email + " not found.");
+        }
+    }
 
-    public Map<String, String> handleTokenRefresh(String authHeader) {
+    public Map<String, String> handleTokenRefresh() {
+        HttpServletRequest request = getCurrentHttpRequest();
+        String authHeader = request.getHeader("Authorization");
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("Missing or invalid Authorization header.");
         }
 
-        String jwtToken = authHeader.substring(7); // Remove "Bearer " prefix
+        String jwtToken = authHeader.substring(7);
 
-        // Validate the JWT token
         String email;
+        String newJwtToken = null;
+
         try {
             Claims claims = jwtService.validateToken(jwtToken);
-            email = claims.getSubject(); // Extract the email (subject) from the token
+            email = claims.getSubject();
         } catch (JwtServiceExceptions.TokenExpiredException e) {
-            throw new RuntimeException("JWT token has expired.");
+            Claims claims = jwtService.validateToken(jwtToken);
+            email = claims.getSubject();
+
+            newJwtToken = jwtService.generateToken(email);
         } catch (JwtServiceExceptions.InvalidTokenException e) {
             throw new RuntimeException("Invalid JWT token.");
         }
 
-        // Retrieve the user from the database
         UserEntity user = checkIfUserExistsInDB(email);
 
-        // Check if the refresh token is expired
         if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
-            // Generate a new refresh token and update it in the database
             generateNewRefreshToken(user);
         }
 
-        // Generate a new JWT token
-        String newJwtToken = jwtService.generateToken(email);
+        if (newJwtToken == null) {
+            newJwtToken = jwtToken;
+        }
 
-        // Return the new JWT token and the refresh token
         Map<String, String> response = new HashMap<>();
         response.put("jwtToken", newJwtToken);
         response.put("refreshToken", user.getRefreshToken());
         return response;
     }
+
+    public Map<String, String> handleJWTTokenRefresh() {
+        HttpServletRequest request = getCurrentHttpRequest();
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Missing or invalid Authorization header.");
+        }
+
+        String jwtToken = authHeader.substring(7);
+
+        String user = jwtService.extractSubject(jwtToken);
+        String newJwtToken = jwtService.generateToken(user);
+
+
+        Map<String, String> response = new HashMap<>();
+        response.put("jwtToken", newJwtToken);
+        return response;
+    }
+
+
+    private HttpServletRequest getCurrentHttpRequest() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            throw new RuntimeException("Unable to fetch the current HTTP request.");
+        }
+        return attributes.getRequest();
+    }
+
 
     public oAuthResponse codeExchangeFromOauth(String code) {
         RestTemplate restTemplate = new RestTemplate();

@@ -1,21 +1,24 @@
 package com.example.AuthenticationService.dto;
 
-public class UserDTO {
-    private String email;
-    private String givenName;
-    private String familyName;
-    private String profilePicture;
-    private String role;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    // Default constructor
+public class UserDTO {
+    @JsonProperty("email")
+    private String email;
+    @JsonProperty("givenName")
+    private String givenName;
+    @JsonProperty("familyName")
+    private String familyName;
+    @JsonProperty("isTourGuide")
+    private boolean isTourGuide;
+
     public UserDTO() {}
 
-    public UserDTO(String email, String givenName, String familyName, String profilePicture, String role) {
+    public UserDTO(String email, String givenName, String familyName,  Boolean isTourGuide) {
         this.email = email;
         this.givenName = givenName;
         this.familyName = familyName;
-        this.profilePicture = profilePicture;
-        this.role = role;
+        this.isTourGuide = isTourGuide;
     }
 
     public String getEmail() {
@@ -42,31 +45,25 @@ public class UserDTO {
         this.familyName = familyName;
     }
 
-    public String getProfilePicture() {
-        return profilePicture;
+
+
+    public void setTourGuide(boolean tourGuide) {
+        isTourGuide = tourGuide;
     }
 
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
+    public boolean isTourGuide() {
+        return isTourGuide;
     }
 
-    public String getRole() {
-        return role;
-    }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    // Optional: toString method
     @Override
     public String toString() {
         return "UserDTO{" +
                 "email='" + email + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
-                ", profilePicture='" + profilePicture + '\'' +
-                ", role='" + role + '\'' +
+                ", isTourGuide=" + isTourGuide +
                 '}';
     }
+
 }
