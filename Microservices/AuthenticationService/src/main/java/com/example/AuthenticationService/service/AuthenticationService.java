@@ -78,8 +78,6 @@ public class AuthenticationService {
         userDto.setEmail(OauthUser.getEmail());
         userDto.setGivenName(OauthUser.getGiven_name());
         userDto.setFamilyName(OauthUser.getFamily_name());
-        userDto.setProfilePicture(OauthUser.getPicture());
-        userDto.setRole("Customer");
         return userDto;
     }
 
@@ -121,22 +119,18 @@ public class AuthenticationService {
         userRepository.save(user);
         System.out.println("Refresh token has been updated.");
     }
-    public boolean removeUserByEmail(String email) {
+    public void removeUserByEmail(String email) {
         // Check if the user exists in the database
         Optional<UserEntity> user = userRepository.findByEmail(email);
 
         if (user.isPresent()) {
             // User found, delete it
             userRepository.delete(user.get());
-            return true; // User was removed successfully
         } else {
             // User not found
             throw new RuntimeException("User with email " + email + " not found.");
         }
     }
-
-
-
 
     public Map<String, String> handleTokenRefresh() {
         // Get the current HTTP request

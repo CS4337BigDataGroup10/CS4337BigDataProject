@@ -4,18 +4,16 @@ public class UserDTO {
     private String email;
     private String givenName;
     private String familyName;
-    private String profilePicture;
-    private String role;
+    private boolean isTourGuide;  // Corresponds to the 'is_tour_guide' column in the schema
 
     // Default constructor
     public UserDTO() {}
 
-    public UserDTO(String email, String givenName, String familyName, String profilePicture, String role) {
+    public UserDTO(String email, String givenName, String familyName, boolean isTourGuide) {
         this.email = email;
         this.givenName = givenName;
         this.familyName = familyName;
-        this.profilePicture = profilePicture;
-        this.role = role;
+        this.isTourGuide = isTourGuide;
     }
 
     public String getEmail() {
@@ -42,20 +40,12 @@ public class UserDTO {
         this.familyName = familyName;
     }
 
-    public String getProfilePicture() {
-        return profilePicture;
+    public boolean isTourGuide() {
+        return isTourGuide;
     }
 
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
+    public void setTourGuide(boolean isTourGuide) {
+        this.isTourGuide = isTourGuide;
     }
 
     // Optional: toString method
@@ -65,8 +55,7 @@ public class UserDTO {
                 "email='" + email + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
-                ", profilePicture='" + profilePicture + '\'' +
-                ", role='" + role + '\'' +
+                ", isTourGuide=" + isTourGuide +
                 '}';
     }
 }

@@ -21,9 +21,9 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable()) // Disable CSRF protection since it's not needed for APIs
                 .authorizeHttpRequests(authorize -> authorize
                         // Allow unauthenticated access to `/auth/grantcode`
-                        .requestMatchers("/auth/grantcode").permitAll()
+                        .requestMatchers("/auth/grantcode", "/auth/refresh").permitAll()
                         // Require JWT authentication for `/auth/user` and `/auth/refresh`
-                        .requestMatchers("/auth/user", "/auth/refresh").authenticated()
+                        .requestMatchers("/auth/user").authenticated()
                         // All other endpoints require authentication by default
                         .anyRequest().authenticated()
                 )
