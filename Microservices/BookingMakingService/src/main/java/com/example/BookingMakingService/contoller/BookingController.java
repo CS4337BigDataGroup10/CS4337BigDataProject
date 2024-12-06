@@ -24,6 +24,7 @@ public class BookingController {
     private final BookingService bookingService;
     private final TourManagementClient tourManagementClient;
     private static int counter = 1;
+
     public BookingController(BookingService bookingService, TourManagementClient tourManagementClient) {
         this.bookingService = bookingService;
         this.tourManagementClient = tourManagementClient;
@@ -37,9 +38,13 @@ public class BookingController {
                             content = @Content(mediaType = "application/json"))
             }
     )
-    @GetMapping("/bookings")
-    public ResponseEntity<String> getAllBookings() {
+    @GetMapping
+    public ResponseEntity<String> getAllBookings() {  // Change here
         String currentBookings = bookingService.getAllBookings();
+        if (currentBookings == null || currentBookings.equals("[]")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No bookings available.");
+        }
         return ResponseEntity.ok(currentBookings);
     }
 
@@ -54,11 +59,18 @@ public class BookingController {
     @GetMapping("/email/{emailId}")
     public ResponseEntity<String> getBookingsByEmailId(@PathVariable String emailId) {
         String userBookings = bookingService.getBookingsByEmailId(emailId);
-        if (userBookings.isEmpty()) {
-            return ResponseEntity.notFound().build();
+
+        // Check for empty list representation or null result
+        if (userBookings == null || userBookings.equals("[]")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No bookings found for email ID: " + emailId);
         }
         return ResponseEntity.ok(userBookings);
     }
+
+
+
+
     @Operation(
             summary = "Create a new booking",
             description = "Create a new booking for a specified tour if the tour is available",
@@ -74,20 +86,23 @@ public class BookingController {
         System.out.println(tourId);
         List<Tour> availableTours = tourManagementClient.getNonFullTours();
         System.out.println("Got all tours");
-        //Check if the requested tour is available
+
+        // Check if the requested tour is available
         boolean tourAvailable = availableTours.stream()
                 .anyMatch(tour -> tour.getTourId() == tourId);
-        if(tourAvailable) {
+        if (tourAvailable) {
             System.out.println("Tour is available to be booked ");
         }
-                //this is checking if the tour we are trying to book into is available and there. If it is not available, it will return a bad request
+        // This is checking if the tour we are trying to book into is available and there.
+        // If it is not available, it will return a bad request.
         if (!tourAvailable) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Selected tour is not available.");
         }
         System.out.println("Proceeding with booking creation");
+
         // Proceed with booking creation
-        //Adds to db of booking repository
+        // Adds to db of booking repository
         Booking booking = new Booking();
         booking.setEmailId("test");
         booking.setCancelled(false);
@@ -97,11 +112,11 @@ public class BookingController {
             System.out.println("Creating Booking");
             Booking newBooking = bookingService.createBooking(booking);
             System.out.println("Notifying tour management");
-            tourManagementClient.notifyTourManagement(newBooking); //this notifys tour management service that the booking has been created after going through the checks.
-        } catch (Exception e){
+            tourManagementClient.notifyTourManagement(newBooking); // This notifies tour management service that the booking has been created after going through the checks.
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error creating booking" +e.getMessage());
+                    .body("Error creating booking: " + e.getMessage());
         }
 
         return ResponseEntity.ok("Booking created successfully and notification sent.");
@@ -115,21 +130,22 @@ public class BookingController {
                     @ApiResponse(responseCode = "400", description = "Booking is already cancelled or does not exist")
             }
     )
-
-    // New endpoint to cancel a booking
-    @PutMapping("/bookings/{bookingId}/cancel")
+    @PutMapping("/{bookingId}/cancel")
     public ResponseEntity<String> cancelBooking(@PathVariable int bookingId) {
-        boolean isCancelled = bookingService.cancelBooking(bookingId);
+        Booking booking = bookingService.findBookingById(bookingId);
 
-        if (isCancelled) {
-            tourManagementClient.notifyCancellation(bookingService.findBookingById(bookingId));
-            return ResponseEntity.ok("Booking with ID " + bookingId + " has been cancelled.");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Booking with ID " + bookingId + " is already cancelled or does not exist.");
+        if (booking == null || booking.isCancelled()) {
+            return ResponseEntity.badRequest().body("Booking with ID " + bookingId + " is already cancelled or does not exist.");
         }
+
+        boolean success = bookingService.cancelBooking(bookingId);
+
+        if (success) {
+            // Notify external service about cancellation
+            tourManagementClient.notifyCancellation(booking);
+            return ResponseEntity.ok("Booking with ID " + bookingId + " has been cancelled.");
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to cancel booking with ID " + bookingId);
     }
-
-
-
 }

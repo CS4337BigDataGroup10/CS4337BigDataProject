@@ -1,4 +1,3 @@
-/*
 package com.example.BookingMakingService;
 
 import com.example.BookingMakingService.contoller.BookingController;
@@ -12,10 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -42,93 +41,142 @@ public class BookingControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(bookingController).build();
     }
 
-    @Test  // Test to ensure all bookings are returned
+    @Test // Test to ensure all bookings are returned
     void testGetAllBookings() throws Exception {
-        List<Booking> bookings = Arrays.asList(new Booking(), new Booking());
         when(bookingService.getAllBookings()).thenReturn("[Booking1, Booking2]");
 
         mockMvc.perform(get("/bookings"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("[Booking1, Booking2]"));
-    }
 
-    @Test // Tests to see if the correct booking is returned when searching by email
-    void testGetBookingsByEmailId() throws Exception {
-        Booking booking = new Booking();
-        booking.setBookingId(1);
-        booking.setEmailId("test@example.com");
-        when(bookingService.getBookingsByEmailId("test@example.com")).thenReturn("[Booking1]");
-
-        mockMvc.perform(get("/email/test@example.com"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("[Booking1]"));
-    }
-
-    @Test //Test for non-existent email
-    void testGetBookingsByEmailId_NotFound() throws Exception {
-        when(bookingService.getBookingsByEmailId("nonexistent@example.com")).thenReturn("[]");
-
-        mockMvc.perform(get("/email/nonexistent@example.com"))
-                .andExpect(status().isNotFound());
+        verify(bookingService, times(1)).getAllBookings();
     }
 
     @Test
+    public void testGetBookingsByEmailId() throws Exception {
+        // Example: Mock the service method to return a specific string
+        String emailId = "test@example.com";
+        String bookings = "[Booking1]"; // Example string response from the service
+        when(bookingService.getBookingsByEmailId(emailId)).thenReturn(bookings);
+
+        // Perform the GET request and assert the response
+        mockMvc.perform(get("/bookings/email/{emailId}", emailId))
+                .andExpect(status().isOk())
+                .andExpect(content().string(bookings)); // Assert that the returned content matches the mock string
+    }
+
+    @Test
+    public void testNoBookingsFound() throws Exception {
+        // Example: Mock the service method to return an empty response (no bookings)
+        String emailId = "nonexistent@example.com";
+        String bookings = "[]"; // This represents no bookings
+
+        when(bookingService.getBookingsByEmailId(emailId)).thenReturn(bookings);
+
+        // Perform the GET request and assert the response
+        mockMvc.perform(get("/bookings/email/{emailId}", emailId))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("No bookings found for email ID: " + emailId));
+    }
+
+    @Test // Test creating a booking when the tour is available
     void testCreateBooking() throws Exception {
+        Tour availableTour = new Tour();
+        availableTour.setTourId(101);
+        when(tourManagementClient.getNonFullTours()).thenReturn(List.of(availableTour));
+
         Booking booking = new Booking();
         booking.setBookingId(1);
         booking.setTourId(101);
-        Tour tour = new Tour();
-        tour.setTourId(101);
-        when(tourManagementClient.getNonFullTours()).thenReturn(Arrays.asList(tour));
-        when(bookingService.createBooking(booking)).thenReturn(booking);
+        when(bookingService.createBooking(any(Booking.class))).thenReturn(booking);
 
-        mockMvc.perform(post("/bookings")
-                        .contentType("application/json")
-                        .content("{\"tourId\":101, \"emailId\":\"test@example.com\"}"))
+        mockMvc.perform(post("/bookings/book/101")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Booking created successfully and notification sent."));
 
-        verify(tourManagementClient, times(1)).notifyTourManagement(booking);
+        verify(tourManagementClient, times(1)).getNonFullTours();
+        verify(bookingService, times(1)).createBooking(any(Booking.class));
+        verify(tourManagementClient, times(1)).notifyTourManagement(any(Booking.class));
     }
 
-    @Test
+    @Test // Test creating a booking when the tour is not available
     void testCreateBooking_TourNotAvailable() throws Exception {
-        // Arrange
-        Booking booking = new Booking();
-        booking.setBookingId(1);
-        booking.setTourId(999);
-        when(tourManagementClient.getNonFullTours()).thenReturn(Arrays.asList(new Tour()));
+        when(tourManagementClient.getNonFullTours()).thenReturn(List.of());
 
-        mockMvc.perform(post("/bookings")
-                        .contentType("application/json")
-                        .content("{\"tourId\":999, \"emailId\":\"test@example.com\"}"))
+        mockMvc.perform(post("/bookings/book/999")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Selected tour is not available."));
+
+        verify(tourManagementClient, times(1)).getNonFullTours();
+        verify(bookingService, never()).createBooking(any(Booking.class));
     }
 
-    @Test
+    @Test // Test canceling a booking successfully
     void testCancelBooking() throws Exception {
+        // Create a booking object
         Booking booking = new Booking();
         booking.setBookingId(1);
         booking.setEmailId("test@example.com");
-        booking.setCancelled(false);
+        booking.setCancelled(false);  // booking is not yet canceled
+
+        // Mock the repository method to return this booking
+        when(bookingService.findBookingById(1)).thenReturn(booking);
+
+        // Mock cancelBooking to return true (indicating successful cancellation)
         when(bookingService.cancelBooking(1)).thenReturn(true);
 
+        // Perform the cancel booking action
         mockMvc.perform(put("/bookings/1/cancel"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Booking with ID 1 has been cancelled."));
+
+        // Verify interactions
+        verify(bookingService, times(1)).cancelBooking(1);
+        verify(tourManagementClient, times(1)).notifyCancellation(booking);
     }
 
-    @Test
+    @Test // Test canceling a booking that is already canceled or non-existent
     void testCancelBooking_AlreadyCancelled() throws Exception {
+        // Mock the repository to return a booking that's already cancelled
         Booking booking = new Booking();
         booking.setBookingId(1);
-        booking.setCancelled(true);
-        when(bookingService.cancelBooking(1)).thenReturn(false);
+        booking.setEmailId("test@example.com");
+        booking.setCancelled(true);  // booking is already canceled
 
+        // Mock the behavior when booking is found
+        when(bookingService.findBookingById(1)).thenReturn(booking);
+
+        // Use lenient stubbing for cancelBooking to avoid unnecessary stubbing exception
+        lenient().when(bookingService.cancelBooking(1)).thenReturn(false);  // cancellation should fail
+
+        // Perform the cancel booking action
         mockMvc.perform(put("/bookings/1/cancel"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Booking with ID 1 is already cancelled or does not exist."));
+
+        // Verify the cancelBooking method was never called if the booking is already canceled
+        verify(bookingService, times(0)).cancelBooking(1);
+
+        // Verify the tourManagementClient's notifyCancellation was not triggered
+        verify(tourManagementClient, never()).notifyCancellation(any(Booking.class));
+    }
+
+    @Test // Test server error during booking creation
+    void testCreateBooking_InternalServerError() throws Exception {
+        Tour availableTour = new Tour();
+        availableTour.setTourId(101);
+        when(tourManagementClient.getNonFullTours()).thenReturn(List.of(availableTour));
+
+        doThrow(new RuntimeException("Database error")).when(bookingService).createBooking(any(Booking.class));
+
+        mockMvc.perform(post("/bookings/book/101")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Error creating booking: Database error"));
+
+        verify(tourManagementClient, times(1)).getNonFullTours();
+        verify(bookingService, times(1)).createBooking(any(Booking.class));
     }
 }
-*/
